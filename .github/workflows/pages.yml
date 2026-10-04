@@ -1,4 +1,4 @@
-name: Deploy eRead Web
+name: Deploy SkipReader Web
 on:
   push:
     branches: [main]
@@ -18,9 +18,18 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm run typecheck:web
+      - run: npm run test:sync
+      - run: npm run test:dictionary
+      - run: npm run build:web
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: public
+          path: web-site/public
       - id: deployment
         uses: actions/deploy-pages@v4

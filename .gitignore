@@ -1,0 +1,16 @@
+node_modules/
+dist/
+release/
+reports/
+publish/
+tools/
+work/
+recovery-backups/
+web-site/public/
+**/.wrangler/
+.env
+.env.*
+*.zip
+*登录恢复卡*.json
+*自动备份*.json
+*网页备份*.json

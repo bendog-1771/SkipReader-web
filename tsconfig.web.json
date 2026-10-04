@@ -1,0 +1,4 @@
+{
+  "extends": "./tsconfig.renderer.json",
+  "include": ["src/web/**/*.ts", "src/web/**/*.tsx", "src/shared/**/*.ts", "src/renderer/**/*.ts", "src/renderer/**/*.tsx", "src/preload.d.ts"]
+}

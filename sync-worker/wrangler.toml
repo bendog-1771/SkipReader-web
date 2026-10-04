@@ -1,0 +1,14 @@
+name = "skipreader-sync"
+main = "worker.mjs"
+compatibility_date = "2026-10-04"
+workers_dev = true
+[vars]
+ALLOWED_ORIGINS = "https://bendog-1771.github.io,http://localhost:5174,http://127.0.0.1:5174"
+[observability]
+enabled = false
+# D1 binding is added by the deployment script. Keep the account on Workers Free.
+
+[[d1_databases]]
+binding = "DB"
+database_name = "skipreader-sync"
+database_id = "57244f47-e7bd-406b-a394-30fa81176ba3"

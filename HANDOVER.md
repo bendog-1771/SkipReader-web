@@ -1,140 +1,76 @@
-# eRead Web 维护与交接手册
+# SkipReader 网页版维护与交接手册
 
-更新日期：2026-10-04（北京时间）。维护者：GitHub `bendog-1771`。
+更新：2026-10-04。维护者 GitHub：bendog-1771。正式网站：https://bendog-1771.github.io/eRead-web/ 。仓库：https://github.com/bendog-1771/eRead-web 。网页版 v0.4.0，旧名 eRead Web。
 
-本文记录实际状态、操作入口和待讨论方案。新对话应重新检查文件和线上状态；这里的计划不表示已实现。
+## 新对话直接复制这段话
 
-## 1. 给新对话的开场白
+> 请维护我的 SkipReader（一跃）网页版。仓库：https://github.com/bendog-1771/eRead-web ，网站：https://bendog-1771.github.io/eRead-web/ 。先阅读 HANDOVER.md 和 README.md，检查实际源码、线上版本、未提交修改和账号授权。我没有编程基础，请用中文解释。保持免费方案、普通 DOM 正文、第三方浏览器插件兼容、笔记生词、阅读位置、桌面安装、本地完整备份与可选加密云同步。维护已有用户数据，不要更换来源域名、清空数据或破坏兼容标识。请完成测试再发布。本次需要：……
 
-可以复制以下文字，并在最后写本次想改的功能：
+仓库现在包含可独立重建的完整网页版，不再只保存压缩发布文件。换电脑时下载源码或克隆仓库即可；提供仓库链接不代表自动授予写权限，维护助手需要实际有效的 GitHub / Cloudflare 官方授权。不要发送密码、令牌、恢复卡。原本机共用工作区是 C:\Users\benbe\Documents\Codex\projects\eRead，包含 Windows 旧版及一些个人文件，不能整个文件夹直接上传。
 
-> 请继续维护我的 eRead 网页版。仓库：https://github.com/bendog-1771/eRead-web ，正式网站：https://bendog-1771.github.io/eRead-web/ 。请先阅读仓库 HANDOVER.md 和 README.md，再核对当前源码、线上版本及未发布修改。我没有编程基础，请用中文解释。项目坚持免费，正文需要保持普通 DOM，以便第三方浏览器插件识别；保留笔记、生词、阅读位置和桌面安装。当前完整源码主要在我电脑的 C:\Users\benbe\Documents\Codex\projects\eRead，远端仓库主要是发布文件，请不要把远端发布文件当作完整源码。本次需求是：……
+## GitHub 基础
 
-在能访问本机的对话中，把上述本机文件夹选为项目。换电脑或没有本机文件访问权限时，仅提供仓库链接无法恢复尚未上传的源码，需要先提供完整源码副本。
+仓库相当于项目文件夹；commit 是一次带说明的版本快照；main 是正式版本分支；Actions 是自动构建检查与发布记录；Issues 用于记录问题；Pull Request 是请维护者审查合并一组修改。
 
-新对话不一定继承上一段聊天的全部内容。GitHub、Cloudflare 登录授权也要检查是否仍有效；不在聊天、手册或仓库中填写密码、访问令牌和授权配置。
+**公开不等于所有人都能改。**其他人能浏览、下载和 fork（复制到自己的账号）。拥有写权限的协作者才能直接改你的仓库；普通用户只能提出 Pull Request，由你决定是否合并。不要随意给别人 Write / Admin 权限。仓库 Settings → Collaborators 可以检查协作者。
 
-## 2. 当前线上状态
+修改少量说明文件：打开文件 → 铅笔 Edit → 修改 → Preview 查看 → Commit changes 填写修改理由。修改程序优先新建分支，创建 Pull Request，检查 Actions 成功后合并。main 的每次更新都会触发网站发布。
 
-| 项目 | 位置／状态 |
+查看上线：Actions → Deploy SkipReader Web → 最新任务。绿色表示成功，红色进入失败步骤看日志；没有成功之前不要认为网站已更新。代码版本与用户书库是两套独立数据：GitHub 回退代码不会自动恢复读者笔记，读者的历史恢复在应用内进行。
+
+## 目录和修改入口
+
+| 路径 | 用途 |
 | --- | --- |
-| 正式网站 | https://bendog-1771.github.io/eRead-web/ |
-| GitHub 仓库 | https://github.com/bendog-1771/eRead-web ，公开，主分支 main |
-| 网站发布 | GitHub Actions：Deploy eRead Web；GitHub Pages source 为 workflow |
-| 查词后台 | https://eread-dictionary.eread-dictionary-worker.workers.dev |
-| 查词后台部署 | Cloudflare Workers Free，worker 名 eread-dictionary |
-| 用户数据 | 各浏览器自己的 IndexedDB，部分阅读位置另有 localStorage 日志 |
-| 云同步／自动文件备份 | 尚未实现，不要向用户描述为已经可用 |
-| 新名字及图标 | 尚未选定，候选见 BRANDING.md |
+| src/web/main.ts | 启动、安装、更新、在线状态 |
+| src/web/api.ts | IndexedDB、本地备份、查词、API 适配 |
+| src/web/importer.ts | 四种书籍格式和安全正文清理 |
+| src/web/protection.ts | 文件夹权限、定时备份、账号、合并、历史恢复 |
+| src/web/sync-model.ts | 可同步记录、跨设备引用、删除标记、HKDF / AES-GCM |
+| src/web/ProtectionPanel.tsx | 设置中的数据保护界面 |
+| src/renderer/app/App.tsx | 共用界面、阅读、朗读、划线、笔记、生词 |
+| src/renderer/shared/styles/app.css / src/web/web.css | 共享样式与网页样式 |
+| src/shared / src/preload.d.ts | 类型、默认值、导出、接口定义 |
+| assets/skipreader-icon.svg / png | 新品牌图标 |
+| scripts/build-web.cjs | 从源码构建、许可、安装文件和离线缓存 |
+| scripts/*regression* | 功能与后台检查 |
+| dictionary-worker | 必应词典后台 |
+| sync-worker | 加密学习记录服务和建表 SQL |
+| web-site/*-config.json | 两个已公开的服务地址 |
+| .github/workflows/pages.yml | 源码检查和 GitHub Pages 发布 |
 
-当前查词后台只接收查询词语，不接收书籍、笔记、阅读位置或原文上下文，也没有数据库绑定。GitHub 发布程序不包含读者的个人数据。
+共享界面保留少量 Windows 条件分支，但网页只执行 Web 分支。此仓库不包含旧 Windows 应用的主进程或个人书籍。不要为了清理旧名破坏协议。
 
-网站的 main 更新会触发发布。GitHub 上修改 dictionary-worker 并不会自动更新 Cloudflare 后台，后台要单独部署。
+## 本地修改、检查和发布
 
-## 3. 源码与发布文件在哪里
+安装 Node.js 24；在源码根目录运行 README 中的安装、检查、构建和预览命令。部署前至少运行类型检查、test:sync、test:dictionary、build:web；界面变动再运行相关浏览器检查。浏览器脚本优先使用本地 Playwright，Windows 有 Edge 时使用 Edge，其他系统使用 Playwright Chromium。首次可运行 npx playwright install chromium。
 
-当前完整工作区：`C:\Users\benbe\Documents\Codex\projects\eRead`。它包含原 Windows 桌面版和网页版；工作区根目录目前并非完整项目的 Git 仓库。
+提交到 main 自动检查并发布网站。浏览器已有离线缓存时等待「更新版本」或刷新，不要建议用户清除网站数据来更新。部署失败保留代码，查看失败原因修复；回退使用 GitHub 的 revert / 撤销提交或创建逆向变更，不强制覆盖别人提交。
 
-远端 eRead-web 仓库当前保存 public 网页发布文件、查词后台、部署配置和文档。尚未保存完整前端源码、主项目依赖清单和全部测试脚本。这是维护上的已知不足；优先安排源码整理、上传和可重建的自动发布。
+后台修改需要另行部署：npm ci --prefix dictionary-worker → npm run login --prefix dictionary-worker。查词使用 npm run deploy --prefix dictionary-worker；同步使用 scripts/deploy-sync.ps1。后台数据库 ID 是公开资源标识，登录令牌是秘密。没有新增服务时不要求读者或维护者重复注册。
 
-| 本机路径 | 用途 |
-| --- | --- |
-| src/web/main.ts | 网页入口、应用启动及安装／更新相关逻辑 |
-| src/web/api.ts | 浏览器数据、备份、网页查词等适配 |
-| src/web/importer.ts | 导入书籍和清理正文 |
-| src/renderer/app/App.tsx | 桌面／网页共用的大部分界面与阅读逻辑 |
-| src/renderer/shared/styles/app.css | 共用界面样式 |
-| src/shared | 类型、默认设置、学习内容导出 |
-| assets/eread-icon.svg、assets/eread-icon.png | 构建时复制的图标源文件 |
-| scripts/build-web.cjs | 网页构建、许可证、缓存清单与安装描述文件生成 |
-| scripts/serve-web.cjs | 本地网页预览和本地查词接口 |
-| scripts/export-web-files.cjs | 选出允许公开的文件，并复制后台发布文件 |
-| scripts/package-web.cjs | 生成网页发布 ZIP |
-| web-site | 网页发布目录、文档、部署配置 |
-| dictionary-worker | 查词后台的实际维护目录 |
-| reports | 本机检查结果和截图，不作为用户数据发布 |
-| publish/eRead-web | 辅助上传的独立仓库副本，不是完整前端源码 |
+## 当前云服务与免费约束
 
-build-web 会重新生成 public 中的若干文件，功能修改应落在源码和构建脚本中。主项目与 dictionary-worker 使用不同的依赖目录。
+查词：https://eread-dictionary.eread-dictionary-worker.workers.dev ，只发送查询词语。同步：https://skipreader-sync.eread-dictionary-worker.workers.dev ，Worker 名 skipreader-sync，D1 名 skipreader-sync，绑定 ID 57244f47-e7bd-406b-a394-30fa81176ba3。当前均使用 Cloudflare 免费计划，没有启用付费。
 
-## 4. 已实现的产品要求
+读者使用客户端随机生成的高熵登录恢复码，下载恢复卡后开启同步。没有邮箱验证、邮件密码或第三方账号绑定。恢复卡遗失后无法找回加密记录。云同步只含学习数据及书籍关联元数据；完整书籍留本地，跨设备需要同一份文件。可以手动用邮箱／网盘存完整备份，但没有接入 QQ 邮箱同步。
 
-- 免费、公开网址、可安装到 Edge／Chrome 的独立窗口。
-- 阅读正文保留主页面普通 DOM；划线覆盖层不截获鼠标事件。
-- EPUB、TXT、Markdown、DOCX 导入；书库、目录、分页、搜索、排版、书签。
-- 我的笔记、生词本、编辑、原文定位和多种导出；网页完整 JSON 备份及桌面完整 JSON 备份导入。
-- 每章独立记录阅读位置，切换和重新打开时恢复。
-- Web Speech 朗读：起读方式、第一句高亮、暂停／继续、句子切换、语速、跟随正文。
-- 柔和的朗读／定位高亮；与文本留间距的直线和较平滑的波浪线。
-- 可选内置查词，默认关闭；只开放必应，展示实际能取得的中英文释义，收藏时保留来源与原文。
-- 不提供网页 AI 提问；帮助与关于只泛指第三方浏览器插件，不推广具体插件品牌。
-- 保留第三方组件许可和词典来源说明。程序不提供书籍下载或第三方内容再发布授权。
+每份云学习文档约 500KB 上限，历史最多 10 个，注册 IP 每小时 5 次，账号总数上限 3,000。总数据库容量和请求配额仍可能更早耗尽；运营者须监测。不能把有限免费额度描述为无限容量。详见 sync-worker/README.md 和官方链接。
 
-安装后的插件行为与实际声音仍需在维护者的浏览器配置中体验，不能只依据模拟朗读测试宣称全部设备效果一致。
+学习记录合并以记录 ID + 逻辑时间戳 + 设备标识确定，同记录以较新版本为准，删除通过 tombstone 保留，上传用 revision CAS 避免覆盖。恢复历史创建新时间戳并同步。新设备通过书文件内容哈希和章节序号重关联笔记，缺书时记录仍可查看但不能定位正文。书文件不同会有不同哈希，不承诺跨版本自动定位。
 
-## 5. 修改、检查、发布
+## 兼容、备份与隐私
 
-以下操作在完整本机工作区执行，不能在目前远端发布仓库中直接运行。先检查现有依赖和运行中的预览，不要随意覆盖本机修改。
+IndexedDB 名 eRead-web，当前版本 3，state / html / chapterText 是原有书库，controls 保存目录句柄和云账号。旧版本原地升级添加 controls。阅读位置 localStorage 日志键 eread-web-position-journal-v1，应用继续兼容旧网页备份 schema eRead-web-backup 和旧桌面备份，PWA id 为 ./。名称变化不能清空这些记录。
 
-```text
-npm run typecheck:web
-npm run build:web
-npm run start:web
-```
+自动文件备份只在应用打开、有修改、达到间隔且获准写入时运行。重新打开可能需手动再次授权。文件备份包含完整本地书库且未加密，恢复卡不包含书籍，两者均不上传 GitHub。controls / 恢复密钥不进入普通书库备份。清理仅匹配 SkipReader 自动备份的严格文件名，不能递归清空目录。新备份写入并关闭成功后才清理旧文件。
 
-本地预览通常为 http://localhost:5174/ 。build:web 会生成 web-site/public。共享代码有修改时，还需运行 `npm run typecheck`，确认桌面版没有类型错误。
+公网同步使用 TLS + 浏览器 AES-GCM 加密。Worker 收到派生认证令牌而非恢复密钥，数据库保存令牌摘要、密文、版本和时间。私有响应不缓存，关闭 Worker 观测日志。身份、密钥、备份内容不进诊断日志；书籍 HTML 必须清理脚本、事件和不安全 URL，保持普通 DOM 并防止导入内容获取恢复密钥。
 
-针对实际改动选择检查：
+用户可以退出云账号，已保存本地内容仍保留；删除云账号需要明确确认，会永久删除该账号当前云记录与历史。其他账号和本地数据不删除。恢复云版本也需要明确确认，因为会改写学习记录并影响其他设备。
 
-| 检查脚本 | 范围 |
-| --- | --- |
-| node scripts/web-regression.cjs | 导入、DOM、本地数据、备份、离线等基础功能 |
-| node scripts/web-ux-regression.cjs | 不同窗口宽度、笔记、导出和界面操作 |
-| node scripts/web-feature-regression.cjs | 阅读位置、朗读高亮、划线、可选查词等 |
-| node scripts/dictionary-worker-regression.mjs | 后台解析、输入与来源限制、错误处理 |
-| node scripts/check-dictionary-browser.cjs | 隔离浏览器验证公网必应查询，需要本地预览 |
-| node scripts/check-web-deployment.cjs | 正式站加载、真实查词、保存、安装缓存和离线 |
+## 后续改进可以做什么
 
-浏览器检查脚本目前依赖这台 Windows 电脑的 Edge 和 Playwright 路径。换环境时需配置相应依赖，不能假设仓库下载后即可运行。
+可继续改善大体量文档的增量同步、冲突比较、跨书文件版本人工关联、浏览器关闭时后台限制提示、服务容量监测和用户自托管。它们不代表当前已支持。若考虑常规邮箱登录，要先解决正式邮件服务、账号找回及免费额度，不要用未配置的邮件服务向用户承诺可登录。
 
-网页发布：用 export-web-files 生成的文件清单复制到远端仓库对应位置，保留目录结构，再提交 main。只发布清单中允许公开的文件，避免将 node_modules、.wrangler、tools、个人备份、报告和凭据整包上传。
-
-现有 prepare-web-publication.cjs、publish-web.ps1、publish-web-api.cjs 是这台电脑的辅助工具，有固定仓库和 GitHub CLI 路径。API 上传脚本会重新读取远端 main，并拒绝强制更新；但不能不检查就把旧的本机文件覆盖到新的远端版本。API 上传后的远端提交可能与辅助本机副本的提交历史不同，下一次工作要先核对。
-
-发布后在 GitHub Actions 确认成功，再检查正式网站。运行 `npm run package:web` 可生成完整发布 ZIP；仓库 ZIP 只备份程序，不能备份浏览器里的书籍或笔记。
-
-查词后台另行发布：见 [dictionary-worker/README.md](dictionary-worker/README.md)。实际维护先修改本机 dictionary-worker，再同步公开副本；使用官方登录授权，保持 Free 计划。不要把私密数据保存逻辑直接接到当前无需用户认证的查词接口上。
-
-## 6. 数据保护和故障定位
-
-- 目前用户操作会自动保存到浏览器，但没有浏览器之外的自动副本。用户主动清除网站数据后可能丢失。
-- 应用已请求持久存储；浏览器可能不批准，获批也不能阻止用户主动清除。
-- localhost 和正式站的数据不同。迁移前先设置 → 备份与日志 → 导出备份，再在目标站导入。
-- 同一域名下不同路径不应被假设为独立的安全存储边界。更换网址前要评估 origin、IndexedDB 名称、安装应用 id、start_url、scope 和缓存。
-- 安装应用仍使用浏览器数据，不等于永久保存。下载的备份文件要留在浏览器之外。
-- 查词失败先分辨网站是否正常、浏览器到后台是否通、后台上游页面是否变化及免费额度。此前曾出现命令行 DNS／网络异常而 Edge 实际查询成功，应结合真实浏览器验证。
-- CORS 限制浏览器来源，不等于用户身份验证；将来私密同步接口必须有真正的认证与访问控制。
-- 页面旧版本可尝试应用内更新提示或 Ctrl+Shift+R；避免首先让用户清除网站数据，这可能破坏书籍和笔记。
-
-## 7. 待讨论的云保存方案
-
-用户希望免费、可恢复、能在多设备同步，并询问每个人是否能使用自己的云账号。尚未选定或实现方案。
-
-1. 用户自己部署 Cloudflare Worker＋D1：可提供独立的公开模板及 Deploy to Cloudflare 按钮；官方支持自动创建绑定资源。用户完成 Cloudflare／GitHub 或 GitLab 授权部署，再在阅读器连接自己的服务。需要设计私有认证、恢复方式、历史版本和升级流程。模板当前尚不存在。
-2. 阅读器直接提供 Cloudflare OAuth 登录并创建用户自己的数据库：Cloudflare 当前支持第三方公开 OAuth 客户端和浏览器 PKCE。不过公开客户端要求通过 DNS TXT 记录验证 client URL 域名；维护者无法为现有 github.io 域名设置该记录，不能承诺仅靠当前 Pages 地址即可启用。绝不让用户把 Cloudflare 全局 API Key 粘贴进网页。
-3. 用户授权自己的 OneDrive 应用文件夹，或 Google Drive 应用数据区域：用个人网盘容量保存同步内容，用户无需维护数据库。接入仍需开发者应用注册、权限配置及真实浏览器测试，不是已有功能。
-
-无论选择哪种，需实现离线后重试、设备间合并、误删恢复、同步状态和导出。不要用简单的“新设备全量覆盖云端”代替同步。优先保存笔记、生词、书签、进度，整本书上传作为明确的可选项。
-
-参考：
-- [Cloudflare OAuth 客户端与域名验证](https://developers.cloudflare.com/fundamentals/oauth/create-an-oauth-client/)
-- [Cloudflare 官方部署按钮](https://developers.cloudflare.com/workers/platform/deploy-buttons/)
-- [D1 免费额度](https://developers.cloudflare.com/d1/platform/pricing/)
-- [OneDrive 应用文件夹](https://learn.microsoft.com/en-us/graph/onedrive-sharepoint-appfolder)
-- [Google Drive 应用数据](https://developers.google.com/workspace/drive/api/guides/appdata)
-
-## 8. 下一步和更新手册
-
-建议优先顺序：保存完整源码和可重建流程 → 自动文件备份 → 选定云同步方式 → 选定新品牌并迁移图标／安装名称。
-
-每次维护结束更新这份手册：改了什么、哪些实际验证通过、是否已上线、是否仍有已知限制和用户待定选择。不写入访问令牌和个人数据，不把计划标成已完成。
+程序、许可声明公开，读者书籍和笔记不公开。必须尊重书籍、词典和组件许可，不提供第三方内容再发布保证。名称检索不能代替正式商标核查。不要承诺插件在所有浏览器独立窗口都可运行。

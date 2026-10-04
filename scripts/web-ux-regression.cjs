@@ -1,0 +1,225 @@
+const fs = require('node:fs');
+const path = require('node:path');
+const assert = require('node:assert/strict');
+const { chromium, browserOptions } = require('./browser-test-runtime.cjs');
+const output = path.resolve(__dirname, '../reports/web-ux');
+fs.mkdirSync(output, { recursive: true });
+
+async function run() {
+  const browser = await chromium.launch(browserOptions);
+  const checks = [], errors = [];
+  const check = (name, condition) => { assert.ok(condition, name); checks.push(name); console.log('PASS ' + name); };
+  const context = await browser.newContext({ acceptDownloads: true, viewport: { width: 1440, height: 1000 } });
+  const page = await context.newPage();
+  page.on('pageerror', error => errors.push(error.message));
+  page.setDefaultTimeout(12000);
+  try {
+    await page.goto('http://localhost:5174/');
+    await page.getByRole('button', { name: '导入书籍', exact: true }).waitFor();
+    for (const width of [390, 600, 820, 1100, 1440]) {
+      await page.setViewportSize({ width, height: 1000 });
+      await page.getByRole('button', { name: '我的笔记', exact: true }).waitFor({ state: 'visible' });
+      const geometry = await page.evaluate(() => {
+        const header = document.querySelector('.library-topbar').getBoundingClientRect();
+        const empty = document.querySelector('.library-books .empty').getBoundingClientRect();
+        return { separated: empty.top >= header.bottom, overflow: document.documentElement.scrollWidth > innerWidth, wideEmpty: empty.width > innerWidth * .5 };
+      });
+      check(`Empty library layout at ${width}px`, geometry.separated && !geometry.overflow && geometry.wideEmpty);
+      check(`Notes navigation accessible at ${width}px`, await page.getByRole('button', { name: '我的笔记', exact: true }).isVisible());
+      await page.getByRole('button', { name: '我的笔记', exact: true }).click();
+      await page.getByRole('heading', { name: '还没有笔记', exact: true }).waitFor();
+      if (width === 390 || width === 820) await page.screenshot({ path: path.join(output, `notes-empty-${width}.png`) });
+      await page.getByRole('button', { name: '全部书籍', exact: true }).click();
+      if (width === 390 || width === 1440) await page.screenshot({ path: path.join(output, `library-empty-${width}.png`) });
+    }
+    await page.setViewportSize({ width: 390, height: 1000 });
+    await page.getByRole('button', { name: '书架与统计 ▾', exact: true }).click();
+    await page.getByTitle('新建书架', { exact: true }).click();
+    await page.locator('.shelf-name-input').fill('Study');
+    await page.locator('.shelf-name-input').press('Enter');
+    await page.locator('.shelf-list').getByRole('button', { name: 'Study', exact: true }).waitFor();
+    check('Shelf creation remains accessible in a narrow window', true);
+    await page.getByRole('button', { name: '收起书架与统计 ▴', exact: true }).click();
+    await page.getByTitle('设置', { exact: true }).click();
+    const settings = page.locator('.settings-modal');
+    await settings.getByLabel('主题').selectOption('forest');
+    await page.waitForFunction(() => document.documentElement.dataset.theme === 'forest');
+    check('Theme settings work on small screens', await settings.locator('.panel').evaluate(el => el.getBoundingClientRect().width > 280));
+    await page.screenshot({ path: path.join(output, 'settings-390.png') });
+    await settings.locator('.float-close').click();
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    const fixture = '# Chapter One\n\n' + Array.from({ length: 35 }, (_, i) => `Paragraph ${i}: A curious reader explores ideas in this ordinary text. This sentence makes each paragraph sufficiently long for scrolling and saves a useful reference for later study.`).join('\n\n') + '\n\n# Chapter Two\n\nSecond chapter has a different reading position.\n';
+    const chooser = page.waitForEvent('filechooser');
+    await page.getByRole('button', { name: '导入书籍', exact: true }).click();
+    await (await chooser).setFiles({ name: 'Reading UX.md', mimeType: 'text/markdown', buffer: Buffer.from(fixture) });
+    await page.locator('.library-book').getByText('Reading UX', { exact: true }).waitFor();
+    check('Import works through the visible button', true);
+    await page.getByRole('button', { name: '管理《Reading UX》', exact: true }).click();
+    await page.getByRole('button', { name: '加入收藏', exact: true }).click();
+    await page.getByRole('button', { name: '我的收藏', exact: true }).click();
+    check('Favorite library shows saved books', await page.locator('.library-book').count() === 1);
+    await page.locator('.library-book').getByText('Reading UX', { exact: true }).click();
+    await page.locator('.reader-text p').first().waitFor();
+    async function selectParagraph(index, word) {
+      return page.evaluate(({ index, word }) => {
+        const paragraphs = [...document.querySelectorAll('.reader-text p')];
+        const paragraph = paragraphs[Math.min(index, paragraphs.length - 1)];
+        const walker = document.createTreeWalker(paragraph, NodeFilter.SHOW_TEXT);
+        let node;
+        while (node = walker.nextNode()) {
+          const at = node.textContent.indexOf(word);
+          if (at < 0) continue;
+          const range = document.createRange(); range.setStart(node, at); range.setEnd(node, at + word.length);
+          const sel = getSelection(); sel.removeAllRanges(); sel.addRange(range);
+          paragraph.dispatchEvent(new MouseEvent('mouseup', { bubbles: true, clientX: 300, clientY: 250 }));
+          return { paragraph: paragraph.textContent, selected: sel.toString() };
+        }
+        throw Error('Missing selection target');
+      }, { index, word });
+    }
+    await selectParagraph(0, 'curious');
+    await page.getByRole('button', { name: '直线', exact: true }).click();
+    await page.waitForFunction(async () => (await readerAPI.notes.listAll()).length === 1);
+    await page.getByRole('button', { name: '写想法', exact: true }).click();
+    await page.getByPlaceholder('写下这处划线的想法').fill('First useful idea');
+    await page.locator('.idea-popover').getByRole('button', { name: '保存', exact: true }).click();
+    await page.waitForFunction(async () => (await readerAPI.notes.listAll())[0].noteText === 'First useful idea');
+    check('Straight highlight and written idea save through the reader UI', true);
+    const far = await selectParagraph(14, 'reference');
+    await page.getByRole('button', { name: '波浪', exact: true }).click();
+    await page.waitForFunction(async () => (await readerAPI.notes.listAll()).length === 2);
+    check('Wavy highlight saves as a separate note', await page.evaluate(async () => (await readerAPI.notes.listAll()).some(n => n.lineStyle === 'wavy')));
+    await page.getByRole('button', { name: '收藏生词', exact: true }).click();
+    const picker = page.locator('.notebook-picker-modal');
+    await picker.getByPlaceholder('生词本名称').fill('My vocabulary');
+    await picker.getByRole('button', { name: '收藏', exact: true }).click();
+    await page.waitForFunction(async () => (await readerAPI.vocab.list()).items.length === 1);
+    check('Vocabulary can be collected without built-in lookup', true);
+    await page.getByRole('button', { name: '+书签', exact: true }).click();
+    await page.getByText('书签添加成功', { exact: true }).waitFor();
+    await page.locator('#chapterSearch').fill('Paragraph 14:');
+    await page.waitForFunction(() => CSS.highlights.has('eread-search-active'));
+    await page.waitForFunction(() => document.querySelector('.reader-scroll').scrollTop > 100);
+    check('Search scrolls to a deep result using native highlights', true);
+    await page.locator('#chapterSearch').fill('');
+    await page.getByRole('button', { name: '← 书库', exact: true }).click();
+    await page.getByRole('button', { name: '我的笔记', exact: true }).click();
+    await page.locator('.note-summary').first().waitFor();
+    check('My notes aggregates reader highlights and ideas', await page.locator('.note-summary').count() === 2);
+    const first = page.locator('.note-summary').filter({ hasText: 'curious' });
+    await first.getByTitle('编辑', { exact: true }).click();
+    const editor = page.locator('.idea-editor-modal');
+    await editor.locator('textarea').fill('Edited useful idea');
+    await editor.getByRole('button', { name: '确认', exact: true }).click();
+    await first.getByText('Edited useful idea', { exact: true }).waitFor();
+    check('Ideas can be edited from My notes', true);
+    await page.getByLabel('仅有想法', { exact: true }).check();
+    check('Idea-only filter works', await page.locator('.note-summary').count() === 1);
+    await page.getByLabel('仅有想法', { exact: true }).uncheck();
+    await page.getByPlaceholder('搜索笔记').fill('not present anywhere');
+    await page.getByRole('heading', { name: '没有符合条件的笔记', exact: true }).waitFor();
+    await page.getByRole('button', { name: '清除筛选', exact: true }).click();
+    check('Empty filtered notes provide working reset action', await page.locator('.note-summary').count() === 2);
+    for (const format of ['HTML', 'TXT', 'Markdown', 'CSV']) {
+      await page.getByRole('button', { name: '导出', exact: true }).click();
+      await page.locator('.export-style').filter({ hasText: format }).getByRole('radio').check();
+      const downloadPromise = page.waitForEvent('download');
+      await page.getByRole('button', { name: '下载文件', exact: true }).click();
+      const download = await downloadPromise;
+      const exported = path.join(output, download.suggestedFilename());
+      await download.saveAs(exported);
+      check(`Notes ${format} export downloads actual ideas and highlights`, fs.readFileSync(exported, 'utf8').includes('Edited useful idea'));
+      await page.locator('.learning-export-modal').waitFor({ state: 'hidden' });
+    }
+    await page.setViewportSize({ width: 820, height: 1000 });
+    await page.screenshot({ path: path.join(output, 'notes-820.png') });
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    await page.locator('.note-summary').filter({ hasText: 'reference' }).getByTitle('定位到原文', { exact: true }).click();
+    await page.locator('.reader-text').waitFor();
+    await page.waitForFunction(() => {
+      const reader = document.querySelector('.reader-scroll').getBoundingClientRect();
+      return [...CSS.highlights.values()].some(highlight => [...highlight].some(range => { const rect = range.getBoundingClientRect(); return range.toString() === 'reference' && rect.top >= reader.top && rect.bottom <= reader.bottom; }));
+    });
+    check('Note location restores the deep original passage', await page.evaluate(() => [...CSS.highlights.values()].some(h => [...h].some(r => r.toString() === 'reference'))));
+    await page.setViewportSize({ width: 390, height: 1000 });
+    check('Narrow reader leaves正文 visible by default', !await page.locator('.side-panel').isVisible());
+    await page.getByRole('button', { name: '展开功能栏', exact: true }).click();
+    await page.locator('.tabs').getByRole('button', { name: '书签', exact: true }).click();
+    check('Bookmarks panel opens on small screens', await page.locator('.side-panel').isVisible() && await page.locator('.side-panel .list-card').count() === 1);
+    await page.screenshot({ path: path.join(output, 'reader-panel-390.png') });
+    await page.getByRole('button', { name: '收起功能栏', exact: true }).click();
+    await page.screenshot({ path: path.join(output, 'reader-390.png') });
+    await page.getByRole('button', { name: '取消选区', exact: true }).click();
+    check('Selection toolbar can be dismissed explicitly', await page.locator('.selection-bar').count() === 0);
+    await page.getByRole('button', { name: '← 书库', exact: true }).click();
+    await page.getByRole('button', { name: '我的笔记', exact: true }).click();
+    await page.getByRole('button', { name: '多选', exact: true }).click();
+    await page.locator('.note-summary').filter({ hasText: 'reference' }).getByRole('checkbox').check();
+    await page.locator('.collection-actions').getByRole('button', { name: '删除', exact: true }).click();
+    const dialog = page.locator('.app-dialog');
+    await dialog.getByRole('button', { name: '确认', exact: true }).click();
+    await page.waitForFunction(async () => (await readerAPI.notes.listAll()).length === 1);
+    check('Batch delete removes only selected notes', await page.locator('.note-summary').count() === 1 && await page.getByText('Edited useful idea', { exact: true }).isVisible());
+    await page.reload();
+    await page.getByRole('button', { name: '我的笔记', exact: true }).click();
+    await page.getByText('Edited useful idea', { exact: true }).waitFor();
+    check('Edited notes and appearance survive page reload', await page.evaluate(() => document.documentElement.dataset.theme === 'forest'));
+    await page.getByRole('button', { name: '全部书籍', exact: true }).click();
+    await page.locator('.library-book').getByText('Reading UX', { exact: true }).click();
+    await page.locator('.reader-text').waitFor();
+    await page.locator('.toolbar').getByRole('button', { name: '下一页', exact: true }).click();
+    await page.getByRole('heading', { name: 'Chapter Two', exact: true }).waitFor();
+    check('Page navigation advances to the next chapter', true);
+    await page.getByRole('button', { name: '← 书库', exact: true }).click();
+    await page.reload();
+    await page.locator('.library-book').getByText('Reading UX', { exact: true }).click();
+    await page.getByRole('heading', { name: 'Chapter Two', exact: true }).waitFor();
+    check('Reading chapter and position survive closing and reopening', true);
+    await page.getByRole('button', { name: '展开功能栏', exact: true }).click();
+    await page.locator('.tabs').getByRole('button', { name: '书签', exact: true }).click();
+    await page.locator('.side-panel .list-card').getByRole('button').first().click();
+    await page.getByRole('heading', { name: 'Chapter One', exact: true }).waitFor();
+    await page.waitForFunction(() => {
+      const reader = document.querySelector('.reader-scroll').getBoundingClientRect();
+      const p = [...document.querySelectorAll('.reader-text p')].find(p => p.textContent.startsWith('Paragraph 14:'));
+      return p && p.getBoundingClientRect().top < reader.bottom && p.getBoundingClientRect().bottom > reader.top;
+    });
+    check('Bookmark restores the saved occurrence of repeated text', true);
+    await page.getByRole('button', { name: '展开功能栏', exact: true }).click();
+    await page.locator('.side-panel .list-card').getByRole('button', { name: '删除', exact: true }).click();
+    await page.locator('.app-dialog').getByRole('button', { name: '确认', exact: true }).click();
+    await page.locator('.side-panel').getByText('暂无书签', { exact: true }).waitFor();
+    check('Bookmark deletion updates the panel', true);
+    await page.getByRole('button', { name: '收起功能栏', exact: true }).click();
+    // Exercise playback controls with voice callbacks; no assertion about audible OS output.
+    await page.evaluate(() => {
+      let paused = false;
+      const synth = window.speechSynthesis;
+      Object.defineProperty(synth, 'paused', { configurable: true, get: () => paused });
+      synth.speak = utterance => { window.testUtterance = utterance; utterance.onstart?.(new Event('start')); };
+      synth.pause = () => { paused = true; window.testUtterance?.onpause?.(new Event('pause')); };
+      synth.resume = () => { paused = false; window.testUtterance?.onresume?.(new Event('resume')); };
+      synth.cancel = () => { paused = false; };
+    });
+    await selectParagraph(14, 'reference');
+    await page.locator('.selection-bar').getByRole('button', { name: '朗读', exact: true }).click();
+    await page.locator('.toolbar').getByRole('button', { name: '朗读中', exact: true }).waitFor();
+    check('Speech sends selected DOM text to the free browser voice interface', await page.evaluate(() => window.testUtterance.text === 'reference'));
+    await page.getByRole('region', { name: '朗读控制' }).getByRole('button', { name: '暂停', exact: true }).click();
+    await page.getByRole('region', { name: '朗读控制' }).getByRole('button', { name: '继续', exact: true }).waitFor();
+    check('Speech pause control handles browser callbacks', true);
+    await page.getByRole('region', { name: '朗读控制' }).getByRole('button', { name: '继续', exact: true }).click();
+    await page.getByRole('region', { name: '朗读控制' }).getByRole('button', { name: '暂停', exact: true }).waitFor();
+    check('Speech resume control handles browser callbacks', true);
+    await page.getByRole('region', { name: '朗读控制' }).getByRole('button', { name: '停止', exact: true }).click();
+    check('Speech stop clears the current reading highlight', !await page.evaluate(() => CSS.highlights.has('eread-speech')));
+    check('No uncaught exceptions during UI interactions', errors.length === 0);
+    fs.writeFileSync(path.join(output, 'report.json'), JSON.stringify({ checks, errors, passed: checks.length, deepSelection: far }, null, 2));
+    for (const file of ['failure.txt', 'failure.png']) { const target = path.join(output, file); if (fs.existsSync(target)) fs.unlinkSync(target); }
+  } catch (error) {
+    await page.screenshot({ path: path.join(output, 'failure.png') }).catch(() => {});
+    fs.writeFileSync(path.join(output, 'failure.txt'), `${error.stack}\n\n${await page.locator('body').innerText().catch(() => '')}\n\nErrors: ${errors.join('\n')}`);
+    throw error;
+  } finally { await browser.close(); }
+}
+run().catch(error => { console.error(error); process.exitCode = 1; });
