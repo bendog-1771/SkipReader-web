@@ -12,7 +12,7 @@
     "start:web": "node scripts/serve-web.cjs",
     "test:sync": "node scripts/sync-model-regression.cjs && node scripts/sync-worker-regression.mjs",
     "test:dictionary": "node scripts/dictionary-worker-regression.mjs",
-    "test:yujing": "node scripts/yujing-regression.cjs && node scripts/yuejing-stability-regression.cjs",
+    "test:yujing": "node scripts/yujing-regression.cjs && node scripts/yuejing-stability-regression.cjs && node scripts/yuejing-refinement-regression.cjs",
     "test:storage": "node scripts/storage-upgrade-regression.cjs",
     "test:web": "node scripts/web-regression.cjs && node scripts/web-ux-regression.cjs && node scripts/web-feature-regression.cjs",
     "test:protection": "node scripts/protection-browser-regression.cjs"

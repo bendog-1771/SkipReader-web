@@ -33,6 +33,7 @@ export function browserSettings(input: Partial<AppSettings> = {}): AppSettings {
   art.manualQuotes = Array.isArray(art.manualQuotes) ? art.manualQuotes.filter(q => typeof q === "string").slice(0,24).map(q => q.slice(0,500)) : [];
   for (const [key, low, high, fallback] of [["speed",0,1.5,.7],["intensity",.1,1,.85],["soundStrength",.5,3,1.8],["readerOpacity",0,1,.78],["planetCount",8,48,24]] as const) art[key] = Number.isFinite(art[key]) ? Math.max(low,Math.min(high,art[key])) : fallback;
   art.paused = art.paused === true;
+  art.matchTheme = art.matchTheme !== false;
   settings.yujing = art;
   if (!settings.dictionary.enabled) Object.assign(settings.dictionary, { hover: false, click: false, doubleClick: false, selection: false });
   settings.dictionary.source = "bing";

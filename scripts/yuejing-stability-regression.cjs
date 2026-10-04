@@ -31,7 +31,8 @@ async function run() {
     check('Old carriage preference migrates to the Blender book island', (await snapshot()).scene === 'island');
     check('Ambiguous circular home button is removed', await page.locator('.yj-home').count() === 0);
     const entry = await page.locator('.yj-entry').boundingBox();
-    check('Library entry is in the top tools, away from lower reading statistics', entry.y < 200 && entry.height >= 30);
+    const notesEntry = await page.getByRole('button', {name:'我的笔记',exact:true}).boundingBox();
+    check('Library entry is directly below My Notes in the left navigation', entry.y >= notesEntry.y + notesEntry.height && entry.x < 250 && entry.height >= 30);
     check('Book cards and their outer buttons become transparent', await page.locator('.library-book').first().evaluate(el => [el, el.querySelector('button')].every(n => getComputedStyle(n).backgroundColor === 'rgba(0, 0, 0, 0)')));
     await page.locator('.book-actions-button').first().click();
     check('Three-dot management still opens the existing book menu', await page.getByRole('button', { name: '重命名', exact: true }).isVisible());

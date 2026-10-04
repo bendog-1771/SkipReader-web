@@ -13,6 +13,7 @@ export interface YujingSettings {
   soundStrength: number;
   readerOpacity: number;
   planetCount: number;
+  matchTheme: boolean;
 }
 
 export interface AppSettings {

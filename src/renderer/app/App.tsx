@@ -6,6 +6,7 @@ import "../shared/styles/app.css";
 import { EXPORT_STYLES, learningExportName, exportExtension, type LearningExportFormat } from "../../shared/learningExport";
 import { ProtectionPanel } from "../../web/ProtectionPanel";
 import { Yujing, YuejingEntry } from "../../web/yujing/Yujing";
+import { LibraryIcon } from "../../web/LibraryIcon";
 
 const WEB = typeof window !== "undefined" && Boolean((window as any).eReadWeb);
 const WEB_HIGHLIGHTS = WEB && typeof (window as any).Highlight === "function" && Boolean((CSS as any).highlights);
@@ -2685,7 +2686,7 @@ function App() {
         }
       }}
     >
-      {WEB && <Yujing settings={settings.yujing} save={yujing => { void saveSettings({ ...settings, yujing }); }} view={viewMode} book={activeBook} chapterText={contextText} chapterTitle={currentChapter?.title} notes={allNotes} vocab={libraryTab === "vocab" ? mainVocab : vocab} notebooks={notebooks} selectedText={selectedText} capture={captureWind} home={() => { void returnToLibrary(); setLibraryTab("all"); }} pageKey={`${activeBook?.id || ""}:${currentChapter?.id || ""}:${safePageIndex}`} />}
+      {WEB && <Yujing theme={settings.theme} settings={settings.yujing} save={yujing => { void saveSettings({ ...settings, yujing }); }} view={viewMode} book={activeBook} chapterText={contextText} chapterTitle={currentChapter?.title} notes={allNotes} vocab={libraryTab === "vocab" ? mainVocab : vocab} notebooks={notebooks} selectedText={selectedText} capture={captureWind} home={() => { void returnToLibrary(); setLibraryTab("all"); }} pageKey={`${activeBook?.id || ""}:${currentChapter?.id || ""}:${safePageIndex}`} />}
       {appBackground && (!WEB || !settings.yujing?.enabled || settings.yujing.blend === "mix") && (
         <div
           className="app-background-layer"
@@ -2702,10 +2703,11 @@ function App() {
           <aside className={`library-sidebar ${libraryNavigationOpen ? "mobile-expanded" : ""}`}>
             <div className="brand">{WEB ? <img className="brand-icon" src="./icon.svg" alt="" /> : <span>e</span>}<div><strong>{WEB ? "SkipReader" : "eRead"}</strong><small>{WEB ? "一跃 · 让阅读向前一步" : "Read English with ease"}</small></div></div>
             <nav className="library-nav" aria-label="书库分区">
-              <button aria-label="全部书籍" aria-current={libraryTab === "all" ? "page" : undefined} className={libraryTab === "all" ? "active" : ""} onClick={() => { if (WEB && libraryTab !== "all") setLibrarySearch(""); setLibraryTab("all"); updateLibrary({ activeShelfId: "all" }); }}><span aria-hidden="true">📚</span><b>全部书籍</b></button>
-              <button aria-label="我的收藏" aria-current={libraryTab === "favorites" ? "page" : undefined} className={libraryTab === "favorites" ? "active" : ""} onClick={() => { if (WEB && libraryTab !== "favorites") setLibrarySearch(""); setLibraryTab("favorites"); updateLibrary({ activeShelfId: "all" }); }}><span aria-hidden="true">★</span><b>我的收藏</b></button>
-              <button aria-label="我的生词" aria-current={libraryTab === "vocab" ? "page" : undefined} className={libraryTab === "vocab" ? "active" : ""} onClick={() => { if (WEB && libraryTab !== "vocab") setLibrarySearch(""); setLibraryTab("vocab"); }}><span aria-hidden="true">Aa</span><b>我的生词</b></button>
-              <button aria-label="我的笔记" aria-current={libraryTab === "notes" ? "page" : undefined} className={libraryTab === "notes" ? "active" : ""} onClick={() => { if (WEB && libraryTab !== "notes") setLibrarySearch(""); setLibraryTab("notes"); }}><span aria-hidden="true">✎</span><b>我的笔记</b></button>
+              <button aria-label="全部书籍" aria-current={libraryTab === "all" ? "page" : undefined} className={libraryTab === "all" ? "active" : ""} onClick={() => { if (WEB && libraryTab !== "all") setLibrarySearch(""); setLibraryTab("all"); updateLibrary({ activeShelfId: "all" }); }}><span aria-hidden="true"><LibraryIcon kind="books" /></span><b>全部书籍</b></button>
+              <button aria-label="我的收藏" aria-current={libraryTab === "favorites" ? "page" : undefined} className={libraryTab === "favorites" ? "active" : ""} onClick={() => { if (WEB && libraryTab !== "favorites") setLibrarySearch(""); setLibraryTab("favorites"); updateLibrary({ activeShelfId: "all" }); }}><span aria-hidden="true"><LibraryIcon kind="favorite" /></span><b>我的收藏</b></button>
+              <button aria-label="我的生词" aria-current={libraryTab === "vocab" ? "page" : undefined} className={libraryTab === "vocab" ? "active" : ""} onClick={() => { if (WEB && libraryTab !== "vocab") setLibrarySearch(""); setLibraryTab("vocab"); }}><span aria-hidden="true"><LibraryIcon kind="words" /></span><b>我的生词</b></button>
+              <button aria-label="我的笔记" aria-current={libraryTab === "notes" ? "page" : undefined} className={libraryTab === "notes" ? "active" : ""} onClick={() => { if (WEB && libraryTab !== "notes") setLibrarySearch(""); setLibraryTab("notes"); }}><span aria-hidden="true"><LibraryIcon kind="notes" /></span><b>我的笔记</b></button>
+              {WEB && <YuejingEntry nav enabled={Boolean(settings.yujing?.enabled)} />}
             </nav>
             {WEB && <button className="mobile-library-toggle" aria-expanded={libraryNavigationOpen} onClick={() => setLibraryNavigationOpen(value => !value)}>{libraryNavigationOpen ? "收起书架与统计 ▴" : "书架与统计 ▾"}</button>}
             <div className="shelf-header"><span>我的书架</span><button onClick={beginCreateShelf} title="新建书架">＋</button></div>
@@ -2776,7 +2778,6 @@ function App() {
               <div className="library-left-tools">
                 <input value={librarySearch} onChange={(event) => setLibrarySearch(event.target.value)} placeholder={libraryTab === "vocab" ? "搜索生词" : libraryTab === "notes" ? "搜索笔记" : "搜索我的书籍"} />
                 <button title="设置" onClick={() => setLibrarySettingsOpen(true)}>⚙</button>
-                {WEB && <YuejingEntry enabled={Boolean(settings.yujing?.enabled)} />}
                 {(libraryTab === "all" || libraryTab === "favorites") && <button title="排序" onClick={() => updateLibrary({ sortMode: nextSortMode(settings.library.sortMode) })}>⇅ {sortModeLabel(settings.library.sortMode)}</button>}
               </div>
               <button className="primary import-button" disabled={Boolean(loading)} onClick={importBook}>导入书籍</button>

@@ -6,17 +6,21 @@
 
 当前网页源码已移至 `C:\Users\benbe\Documents\Codex\projects\SkipReader-web`，分支 `feature/yujing-atmospheres`。正式线上仍为 v0.4.0，没有发布本轮变化。先读 [YUJING.md](YUJING.md) 了解接入、数据范围、音频授权与回退。默认关闭跃境；关闭恢复原设置。修改前标签 `before-yujing-2026-10-04`，源码包在相邻 `SkipReader-backups/2026-10-04-before-yujing`。
 
+2026-10-05 新一轮：入口移到侧栏「我的笔记」下方，导航图标统一笔画。新增默认开启的 `matchTheme`（仅跃境已开启时生效）；`palette.js` 将六主题用于全部场景、灯光和刷词界面，旧设置自动补齐。`ocean-shader.js` 连续色散波、距离过滤细波、Fresnel / 日光反射；`sky-shader.js` 为天空及倒影提供同一云场。星轨使用 20px / 手机 16px 的屏幕字号、四条进动环、碰撞避让与手机点选区。声音能量使用 ref；文字测量有缓存；暂停后 WebGL 停止重复重绘。补充中文和带重音字母原句的答前遮词。
+
+新书岛 `assets/yuejing/refined/book-island.glb`、源文件 `reading-garden.blend`，脚本 `scripts/build-refined-book-island.py`。原生审计无警告、26,860 三角面；导出 12 材质，干净重新导入三角面一致，网页使用阴影与同主题灯光。旧模型保留用于回退。精修前提交 `4e28412`，标签 `before-yuejing-refinement-2026-10-05`；备份在相邻 `SkipReader-backups/2026-10-05-refinement`。参考设计技能与取舍见 [DESIGN-REFINEMENT.md](DESIGN-REFINEMENT.md)。
+
 原 `eRead` 目录只保留指引和启动转发；旧桌面开发版、个人材料在相邻 `SkipReader-legacy`。以前共用目录的网页发布副本、后台和压缩包在该目录的 `archives/web-before-split`。不要将旧桌面目录或个人材料上传到网页仓库。
 
 跃境入口：`src/web/yujing/Yujing.tsx`；3D/Canvas：`scene-engine.js`；音频与资源清理：`audio.ts`；独立演示：`lab.tsx`。设置只增加可选 `yujing`，旧数据库、网址、协议与安装标识不变。Three.js 按需加载，默认关闭时不创建画布。构建同时输出 `lab.html`，演示不访问用户书库。新增 `test:yujing`、`test:storage`；原回归继续执行。声音权限窗口使用模拟轨道检查，真实系统声音还须用户在浏览器手动授权。
 
-本轮优化已弃用车窗，旧设置 `scene: train` 自动转为 `island`。入口改为顶部明确的「跃境」，删除圆形「余」主页按钮。书卡透明、气候面板跟随六种主题、阅读底色独立 0–100%，搜索栏紧凑、管理按钮为三点。星轨恢复 v1 的暖色线框与 850 颗星，最多 48 个实际生词；题目总是显示原文例句。中文短句分割、鼠标风场、选区旁入风、快速按键与场景资源清理均已修正。
+本轮优化已弃用车窗，旧设置 `scene: train` 自动转为 `island`。入口明确称为「跃境」，现位于左侧笔记下方，删除圆形「余」主页按钮。书卡透明、气候面板跟随六种主题、阅读底色独立 0–100%，搜索栏紧凑、管理按钮为三点。星轨恢复 v1 的暖色线框与 850 颗星，最多 48 个实际生词；题目总是显示原文例句。中文短句分割、鼠标风场、选区旁入风、快速按键与场景资源清理均已修正。
 
 实际使用本机 Steam Blender 5.2.2 LTS，运行自有脚本 `scripts/build-yuejing-blender.py`，带 `--factory-startup --disable-autoexec --python-exit-code 1`。`assets/yuejing` 包含原创书岛 GLB、FFT 海面 GLB 与可编辑 `.blend`；`.blend` 不进入网页包。GLB 由构建器按文件加载，随网页离线缓存。没有安装原生工具或插件，没有修改个人 Blender 配置。脚本 `export-yujing-models.mjs` 只复制这些素材到艺术实验目录。
 
 这轮前的提交为 `a052342`，标签 `before-yuejing-polish-2026-10-04`；备份 `SkipReader-before-yuejing-polish.zip` 位于相邻备份目录。归档旧车窗素材留在 `abandoned-carriage`。内部 `yujing` 名称保留以兼容旧设置，界面统一称跃境。
 
-检查记录：原浏览器功能 91 项，跃境 40 项、稳定性 22 项，旧库升级 7 项，合并加密 18 项、同步后台 21 项、词典后台 16 项。详见 `reports` 中记录；授权捕获使用模拟音轨，实际系统声音需要浏览器共享授权。正式网站与后台均未部署。
+检查记录：原浏览器功能 91 项，跃境 40 项、稳定性 22 项、精修 48 项，旧库升级 7 项，合并加密 18 项、同步后台 21 项、词典后台 16 项。详见 `reports` 中记录；授权捕获使用模拟音轨，实际系统声音需要浏览器共享授权。正式网站与后台均未部署。
 
 ## 新对话直接复制这段话
 
