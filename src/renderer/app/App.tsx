@@ -5,6 +5,7 @@ import type { AppSettings, Book, Bookmark, Chapter, DictionaryResult, Notebook, 
 import "../shared/styles/app.css";
 import { EXPORT_STYLES, learningExportName, exportExtension, type LearningExportFormat } from "../../shared/learningExport";
 import { ProtectionPanel } from "../../web/ProtectionPanel";
+import { Yujing } from "../../web/yujing/Yujing";
 
 const WEB = typeof window !== "undefined" && Boolean((window as any).eReadWeb);
 const WEB_HIGHLIGHTS = WEB && typeof (window as any).Highlight === "function" && Boolean((CSS as any).highlights);
@@ -2664,7 +2665,7 @@ function App() {
   return (
     <div
       ref={appShellRef}
-      className={`app-shell ${appBackground ? "has-custom-background" : ""} ${viewMode === "library" ? "library-mode" : "reader-mode"} ${readerSideCollapsed ? "side-collapsed" : ""}`}
+      className={`app-shell ${appBackground ? "has-custom-background" : ""} ${WEB && settings.yujing?.enabled ? "yj-enabled" : ""} ${viewMode === "library" ? "library-mode" : "reader-mode"} ${readerSideCollapsed ? "side-collapsed" : ""}`}
       onContextMenu={(event) => {
         const target = event.target as HTMLElement | null;
         if (!target?.closest?.(".library-book, .notebook-pill, .context-menu, .context-delete, .chat")) {
@@ -2674,7 +2675,8 @@ function App() {
         }
       }}
     >
-      {appBackground && (
+      {WEB && <Yujing settings={settings.yujing} save={yujing => { void saveSettings({ ...settings, yujing }); }} view={viewMode} book={activeBook} chapterText={contextText} chapterTitle={currentChapter?.title} notes={allNotes} vocab={libraryTab === "vocab" ? mainVocab : vocab} notebooks={notebooks} selectedText={selectedText} capture={() => addSelectionMark("solid", noteDraftColor)} home={() => { void returnToLibrary(); setLibraryTab("all"); }} pageKey={`${activeBook?.id || ""}:${currentChapter?.id || ""}:${safePageIndex}`} />}
+      {appBackground && (!WEB || !settings.yujing?.enabled || settings.yujing.blend === "mix") && (
         <div
           className="app-background-layer"
           style={{
@@ -2877,6 +2879,7 @@ function App() {
             <div className="toolbar">
               <button onClick={previousReaderPage} title="上一页">上一页</button>
               <button onClick={nextReaderPage} title="下一页">下一页</button>
+              {WEB && settings.yujing?.enabled && settings.yujing.scene === "wind" && <button className="yj-capture" disabled={!selectedText.trim()} onMouseDown={event => event.preventDefault()} onClick={() => { void addSelectionMark("solid", noteDraftColor).then(note => { if (note) void saveSettings({ ...settings, yujing: { ...settings.yujing!, source: "highlights" } }); }).catch(error => pushNotice(String(error))); }}>选句入风</button>}
               <button onClick={() => addBookmark()}>+书签</button>
               <span className="tts-menu-wrap">
                 <button className={ttsActive ? "speaking" : ""} onClick={() => setTtsMenuOpen((open) => !open)}>{ttsActive ? "朗读中" : "朗读"}</button>

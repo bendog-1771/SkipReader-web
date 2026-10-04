@@ -1,4 +1,4 @@
-import { DEFAULT_SETTINGS } from "../shared/defaults";
+import { DEFAULT_SETTINGS, DEFAULT_YUJING } from "../shared/defaults";
 import { renderNotesExport, renderVocabExport, exportExtension, type LearningExportFormat } from "../shared/learningExport";
 import type { AppSettings, Book, Chapter, TocItem, Bookmark, Notebook, ReaderNote, ReadingPosition, VocabItem, DictionaryResult } from "../shared/types";
 import { cleanBookHtml, importWebBook } from "./importer";
@@ -23,6 +23,16 @@ export function browserSettings(input: Partial<AppSettings> = {}): AppSettings {
     (settings as any)[key] = { ...defaults[key], ...input[key] };
   }
   settings.dictionary.enabled = Boolean(settings.dictionary.enabled);
+  const art = { ...DEFAULT_YUJING, ...input.yujing };
+  art.enabled = art.enabled === true;
+  if (!["wind", "ocean", "train", "orbit"].includes(art.scene)) art.scene = "ocean";
+  if (!["dawn", "day", "dusk", "night"].includes(art.mood)) art.mood = "day";
+  if (!["highlights", "chapter", "manual"].includes(art.source)) art.source = "highlights";
+  art.blend = art.blend === "mix" ? "mix" : "art";
+  art.manualQuotes = Array.isArray(art.manualQuotes) ? art.manualQuotes.filter(q => typeof q === "string").slice(0,24).map(q => q.slice(0,500)) : [];
+  for (const [key, low, high, fallback] of [["speed",0,1.5,.7],["intensity",.1,1,.65],["soundStrength",.5,3,1.8]] as const) art[key] = Number.isFinite(art[key]) ? Math.max(low,Math.min(high,art[key])) : fallback;
+  art.paused = art.paused === true;
+  settings.yujing = art;
   if (!settings.dictionary.enabled) Object.assign(settings.dictionary, { hover: false, click: false, doubleClick: false, selection: false });
   settings.dictionary.source = "bing";
   settings.dictionary.defaultWebSource = "bing";

@@ -14,3 +14,6 @@ web-site/public/
 *登录恢复卡*.json
 *自动备份*.json
 *网页备份*.json
+.server-pid
+server.log
+server-error.log

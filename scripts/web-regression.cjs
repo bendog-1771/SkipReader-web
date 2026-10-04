@@ -36,7 +36,7 @@ async function run() {
   zip.file("OEBPS/chapter1.xhtml",'<html><body><h1>Chapter One</h1><p>A &amp; B. The same word appears here.</p><p>The same word appears again.</p><img src="cover.png"/><a href="chapter2.xhtml">Next chapter link</a><script>window.bookAttack=true</script><a href="javascript:alert(1)">Bad link</a><p onclick="alert(1)" data-reader-text="1" data-start="999999">Clean text</p></body></html>');
   zip.file("OEBPS/chapter2.xhtml",'<html><body><h1>Chapter Two</h1><p>This is the second chapter.</p></body></html>');
   zip.file("OEBPS/nav.xhtml",'<html><body><nav epub:type="toc"><ol><li><a href="chapter1.xhtml">Part One</a><ol><li><a href="chapter1.xhtml">Chapter One</a></li><li><a href="chapter2.xhtml">Chapter Two</a></li></ol></li></ol></nav></body></html>');
-  zip.file("OEBPS/cover.png",fs.readFileSync(path.resolve(__dirname,"../assets/eread-icon.png")));
+  zip.file("OEBPS/cover.png",fs.readFileSync(path.resolve(__dirname,"../assets/skipreader-icon.png")));
   const epub=await importFile("Fixture.epub",await zip.generateAsync({type:"nodebuffer"}));
   check("EPUB spine, metadata, nested TOC and cover",epub.chapters.length===2&&epub.book.title==="EPUB Fixture"&&epub.book.coverPath.startsWith("data:image/")&&epub.tocItems[1].parentId===epub.tocItems[0].id);
   const epubHtml=await page.evaluate(id=>window.readerAPI.books.chapterHtml(id),epub.chapters[0].id);

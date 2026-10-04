@@ -1,6 +1,20 @@
 export type ThemeName = "paper" | "night" | "sepia" | "forest" | "blue" | "dusk";
 
+export interface YujingSettings {
+  enabled: boolean;
+  scene: "wind" | "ocean" | "train" | "orbit";
+  mood: "dawn" | "day" | "dusk" | "night";
+  speed: number;
+  intensity: number;
+  paused: boolean;
+  blend: "art" | "mix";
+  source: "highlights" | "chapter" | "manual";
+  manualQuotes: string[];
+  soundStrength: number;
+}
+
 export interface AppSettings {
+  yujing?: YujingSettings;
   theme: ThemeName;
   uiFontSize: number;
   readerFontSize: number;

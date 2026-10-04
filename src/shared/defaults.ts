@@ -1,6 +1,9 @@
-import type { AppSettings } from "./types";
+import type { AppSettings, YujingSettings } from "./types";
+
+export const DEFAULT_YUJING: YujingSettings = { enabled: false, scene: "ocean", mood: "day", speed: .7, intensity: .65, paused: false, blend: "art", source: "highlights", manualQuotes: [], soundStrength: 1.8 };
 
 export const DEFAULT_SETTINGS: AppSettings = {
+  yujing: DEFAULT_YUJING,
   theme: "paper",
   uiFontSize: 14,
   readerFontSize: 18,

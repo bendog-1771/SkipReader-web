@@ -20,4 +20,4 @@ http.createServer(async (req,res)=>{
   if (filename !== root && !filename.startsWith(root + path.sep)) { res.writeHead(403).end(); return; }
   if (filename === root) filename = path.join(root,"index.html");
   fs.readFile(filename,(error,buffer)=>{ if(error){res.writeHead(404).end("Not found");return;} res.writeHead(200,{"Content-Type":types[path.extname(filename)]||"application/octet-stream","Cache-Control":"no-cache"}).end(buffer); });
-}).listen(5174,"127.0.0.1",()=>console.log("eRead Web: http://localhost:5174"));
+}).listen(Number(process.env.SKIPREADER_PORT || 5174),"127.0.0.1",()=>console.log("SkipReader Web: http://localhost:" + (process.env.SKIPREADER_PORT || 5174)));
