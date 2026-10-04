@@ -17,3 +17,6 @@ web-site/public/
 .server-pid
 server.log
 server-error.log
+
+*.blend1
+*.blend2

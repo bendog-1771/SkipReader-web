@@ -18,7 +18,7 @@ async function run() {
     const chooser = page.waitForEvent('filechooser'); await page.getByRole('button', { name: '导入书籍', exact: true }).click();
     await (await chooser).setFiles({ name: 'Features.md', mimeType: 'text/markdown', buffer: Buffer.from(fixture) });
     await page.locator('.library-book').getByText('Features', { exact: true }).waitFor();
-    check('Book management label is clean', await page.locator('.book-actions-button').innerText() === '管理');
+    check('Book management uses discreet dots and a clear accessible name', await page.locator('.book-actions-button').innerText() === '•••' && (await page.locator('.book-actions-button').getAttribute('aria-label')).includes('管理《Features》'));
     await page.locator('.library-book').getByText('Features', { exact: true }).click(); await page.locator('.reader-text p').first().waitFor();
     check('Dictionary is optional and initially hidden', await page.locator('.tabs').getByRole('button', { name: '查词', exact: true }).count() === 0);
     // Chapter navigation must preserve the earlier chapter's independent location.

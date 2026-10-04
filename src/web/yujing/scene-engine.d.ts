@@ -7,6 +7,7 @@ export class SceneEngine {
  energy: { bass: number; mid: number; high: number; level: number };
  burst(index?: number): void;
  transition(): void;
+ gust(quote?: string): void;
  dispose(): void;
- snapshot(): { triangles: number; time: number; targets: Array<{ index: number; x: number; y: number }>; energy: number };
+ snapshot(): { triangles: number; time: number; targets: Array<{ index: number; x: number; y: number }>; energy: number; activeScene: string; visibleLayers: string[]; models: Record<string,string>; stars: number; planetCount: number; gust: number; pointer: number[]; geometries:number };
 }

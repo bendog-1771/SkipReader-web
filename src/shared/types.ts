@@ -2,7 +2,7 @@ export type ThemeName = "paper" | "night" | "sepia" | "forest" | "blue" | "dusk"
 
 export interface YujingSettings {
   enabled: boolean;
-  scene: "wind" | "ocean" | "train" | "orbit";
+  scene: "wind" | "ocean" | "island" | "orbit";
   mood: "dawn" | "day" | "dusk" | "night";
   speed: number;
   intensity: number;
@@ -11,6 +11,8 @@ export interface YujingSettings {
   source: "highlights" | "chapter" | "manual";
   manualQuotes: string[];
   soundStrength: number;
+  readerOpacity: number;
+  planetCount: number;
 }
 
 export interface AppSettings {

@@ -15,6 +15,7 @@ const result = esbuild.buildSync({
   outdir: path.join(out, "assets"), entryNames: "[name]", chunkNames: "[name]-[hash]",
   format: "esm", platform: "browser", target: ["chrome105", "firefox115", "safari16"],
   jsx: "automatic", splitting: true, minify: true, metafile: true,
+  loader: { ".glb": "file" },
   define: { "process.env.NODE_ENV": '"production"' }
 });
 const outputs = Object.keys(result.metafile.outputs).map(p => "./" + path.relative(out, path.resolve(root, p)).replace(/\\/g, "/"));
@@ -46,7 +47,7 @@ fs.writeFileSync(path.join(out, "third-party-notices.txt"), "SkipReader · Third
 // Rounded artwork uses purpose:any so browsers don't crop the composition again.
 fs.writeFileSync(path.join(out, "manifest.webmanifest"), JSON.stringify({ id: "./", name: "SkipReader · 一跃", short_name: "一跃", description: "免费阅读器，自动文件备份与可选加密学习记录同步", lang: "zh-CN", start_url: "./", scope: "./", display: "standalone", background_color: "#f3efe7", theme_color: "#f3efe7", icons: installIcons }, null, 2));
 fs.writeFileSync(path.join(out, "index.html"), `<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#f3efe7"><meta name="eread-dictionary-api" content="${dictionaryApi.replace(/&/g, "&amp;")}"><meta name="skipreader-sync-api" content="${syncApi}"><meta name="description" content="一跃 SkipReader：免费阅读器，支持浏览器查词插件、自动文件备份和可选加密云同步"><title>SkipReader · 一跃</title><link rel="icon" href="./icon.png"><link rel="manifest" href="./manifest.webmanifest">${css.map(p=>`<link rel="stylesheet" href="${p}">`).join("")}</head><body><div id="root">正在打开一跃…</div><script type="module" src="./assets/app.js"></script></body></html>`);
-fs.writeFileSync(path.join(out, "lab.html"), '<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SkipReader · 余境实验室</title><link rel="icon" href="./icon.png"><link rel="stylesheet" href="./assets/yujing-lab.css"></head><body><div id="root"></div><script type="module" src="./assets/yujing-lab.js"></script></body></html>');
+fs.writeFileSync(path.join(out, "lab.html"), '<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SkipReader · 跃境实验室</title><link rel="icon" href="./icon.png"><link rel="stylesheet" href="./assets/yujing-lab.css"></head><body><div id="root"></div><script type="module" src="./assets/yujing-lab.js"></script></body></html>');
 const files = ["./", "./index.html", "./lab.html", "./manifest.webmanifest", "./icon.png", "./icon.svg", ...installIcons.map(icon => icon.src), "./third-party-notices.txt", ...outputs];
 const hash = require("node:crypto").createHash("sha256");
 for (const file of files.filter(p => p !== "./")) hash.update(fs.readFileSync(path.join(out, file)));

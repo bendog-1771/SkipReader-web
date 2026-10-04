@@ -1,11 +1,11 @@
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
-import { DEFAULT_SETTINGS, READER_FONTS, SHORTCUTS } from "../../shared/defaults";
+import { DEFAULT_YUJING, DEFAULT_SETTINGS, READER_FONTS, SHORTCUTS } from "../../shared/defaults";
 import type { AppSettings, Book, Bookmark, Chapter, DictionaryResult, Notebook, ReaderNote, ReadingPosition, TocItem, VocabItem } from "../../shared/types";
 import "../shared/styles/app.css";
 import { EXPORT_STYLES, learningExportName, exportExtension, type LearningExportFormat } from "../../shared/learningExport";
 import { ProtectionPanel } from "../../web/ProtectionPanel";
-import { Yujing } from "../../web/yujing/Yujing";
+import { Yujing, YuejingEntry } from "../../web/yujing/Yujing";
 
 const WEB = typeof window !== "undefined" && Boolean((window as any).eReadWeb);
 const WEB_HIGHLIGHTS = WEB && typeof (window as any).Highlight === "function" && Boolean((CSS as any).highlights);
@@ -58,6 +58,7 @@ const SETTING_CATEGORIES: Array<{ id: SettingCategory; label: string }> = [
 
 function App() {
   const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
+  const settingsSaveSerial = useRef(0);
   const [books, setBooks] = useState<Book[]>([]);
   const [activeBook, setActiveBook] = useState<Book | null>(null);
   const [chapters, setChapters] = useState<Chapter[]>([]);
@@ -626,24 +627,20 @@ function App() {
     });
   }, [sideTab, aiLog.length, aiLog[aiLog.length - 1]?.text]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!ideaTargetId) return;
-    requestAnimationFrame(() => {
-      const input = ideaDraftRef.current;
-      if (!input) return;
-      input.focus();
-      input.setSelectionRange(input.value.length, input.value.length);
-    });
+    const input = ideaDraftRef.current;
+    if (!input) return;
+    input.focus();
+    input.setSelectionRange(input.value.length, input.value.length);
   }, [ideaTargetId]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!editingNote) return;
-    requestAnimationFrame(() => {
-      const input = editingIdeaRef.current;
-      if (!input) return;
-      input.focus();
-      input.setSelectionRange(input.value.length, input.value.length);
-    });
+    const input = editingIdeaRef.current;
+    if (!input) return;
+    input.focus();
+    input.setSelectionRange(input.value.length, input.value.length);
   }, [editingNote?.id]);
 
   useEffect(() => {
@@ -1540,6 +1537,16 @@ function App() {
     return note;
   }
 
+  async function captureWind() {
+    const note = await addSelectionMark("solid", noteDraftColor);
+    if (note) {
+      await saveSettings({ ...settings, yujing: { ...(settings.yujing || DEFAULT_YUJING), source: "highlights" } });
+      window.dispatchEvent(new CustomEvent("skipreader:wind-captured", { detail: note.selectedText }));
+      pushNotice("这句话已送入风中");
+    }
+    return note;
+  }
+
   async function toggleSelectionMark(lineStyle: "solid" | "wavy") {
     const exact = exactNoteForSelection(notes, currentChapter?.id, selectedText, selectedRange);
     if (exact?.lineStyle === lineStyle) {
@@ -2112,8 +2119,10 @@ function App() {
   }
 
   async function saveSettings(next: AppSettings) {
+    const serial = ++settingsSaveSerial.current;
     setSettings(next);
     const saved = await window.readerAPI.settings.set(next);
+    if (serial !== settingsSaveSerial.current) return;
     setSettings(saved);
     if (WEB && !saved.dictionary.enabled) {
       lookupSerial.current++; setDictionary(null); setDictionaryEnhancing(false); setDictionaryFloatOpen(false);
@@ -2666,6 +2675,7 @@ function App() {
     <div
       ref={appShellRef}
       className={`app-shell ${appBackground ? "has-custom-background" : ""} ${WEB && settings.yujing?.enabled ? "yj-enabled" : ""} ${viewMode === "library" ? "library-mode" : "reader-mode"} ${readerSideCollapsed ? "side-collapsed" : ""}`}
+      style={{ "--yj-paper": `${Math.round((settings.yujing?.readerOpacity ?? .78) * 100)}%` } as React.CSSProperties}
       onContextMenu={(event) => {
         const target = event.target as HTMLElement | null;
         if (!target?.closest?.(".library-book, .notebook-pill, .context-menu, .context-delete, .chat")) {
@@ -2675,7 +2685,7 @@ function App() {
         }
       }}
     >
-      {WEB && <Yujing settings={settings.yujing} save={yujing => { void saveSettings({ ...settings, yujing }); }} view={viewMode} book={activeBook} chapterText={contextText} chapterTitle={currentChapter?.title} notes={allNotes} vocab={libraryTab === "vocab" ? mainVocab : vocab} notebooks={notebooks} selectedText={selectedText} capture={() => addSelectionMark("solid", noteDraftColor)} home={() => { void returnToLibrary(); setLibraryTab("all"); }} pageKey={`${activeBook?.id || ""}:${currentChapter?.id || ""}:${safePageIndex}`} />}
+      {WEB && <Yujing settings={settings.yujing} save={yujing => { void saveSettings({ ...settings, yujing }); }} view={viewMode} book={activeBook} chapterText={contextText} chapterTitle={currentChapter?.title} notes={allNotes} vocab={libraryTab === "vocab" ? mainVocab : vocab} notebooks={notebooks} selectedText={selectedText} capture={captureWind} home={() => { void returnToLibrary(); setLibraryTab("all"); }} pageKey={`${activeBook?.id || ""}:${currentChapter?.id || ""}:${safePageIndex}`} />}
       {appBackground && (!WEB || !settings.yujing?.enabled || settings.yujing.blend === "mix") && (
         <div
           className="app-background-layer"
@@ -2766,6 +2776,7 @@ function App() {
               <div className="library-left-tools">
                 <input value={librarySearch} onChange={(event) => setLibrarySearch(event.target.value)} placeholder={libraryTab === "vocab" ? "搜索生词" : libraryTab === "notes" ? "搜索笔记" : "搜索我的书籍"} />
                 <button title="设置" onClick={() => setLibrarySettingsOpen(true)}>⚙</button>
+                {WEB && <YuejingEntry enabled={Boolean(settings.yujing?.enabled)} />}
                 {(libraryTab === "all" || libraryTab === "favorites") && <button title="排序" onClick={() => updateLibrary({ sortMode: nextSortMode(settings.library.sortMode) })}>⇅ {sortModeLabel(settings.library.sortMode)}</button>}
               </div>
               <button className="primary import-button" disabled={Boolean(loading)} onClick={importBook}>导入书籍</button>
@@ -2792,7 +2803,7 @@ function App() {
                       <small>{book.missing ? "文件丢失" : book.author || book.fileType.toUpperCase()}</small>
                     </button>
                     {book.missing && <button className="relocate-button" onClick={() => relocateBook(book.id)}>重新定位</button>}
-                    {WEB && <button className="book-actions-button" aria-label={`管理《${book.title}》`} onClick={(event) => { event.stopPropagation(); keepContextOpen(); const rect = event.currentTarget.getBoundingClientRect(); setBookMenu({ bookId: book.id, x: Math.max(8, Math.min(rect.left, window.innerWidth - 170)), y: Math.max(8, Math.min(rect.bottom + 4, window.innerHeight - 310)) }); }}>管理</button>}
+                    {WEB && <button className="book-actions-button" aria-label={`管理《${book.title}》`} title={`管理《${book.title}》`} onClick={(event) => { event.stopPropagation(); keepContextOpen(); const rect = event.currentTarget.getBoundingClientRect(); setBookMenu({ bookId: book.id, x: Math.max(8, Math.min(rect.left, window.innerWidth - 170)), y: Math.max(8, Math.min(rect.bottom + 4, window.innerHeight - 310)) }); }}><span aria-hidden="true">•••</span></button>}
                   </div>
                 ))}
               </section>
@@ -2879,7 +2890,8 @@ function App() {
             <div className="toolbar">
               <button onClick={previousReaderPage} title="上一页">上一页</button>
               <button onClick={nextReaderPage} title="下一页">下一页</button>
-              {WEB && settings.yujing?.enabled && settings.yujing.scene === "wind" && <button className="yj-capture" disabled={!selectedText.trim()} onMouseDown={event => event.preventDefault()} onClick={() => { void addSelectionMark("solid", noteDraftColor).then(note => { if (note) void saveSettings({ ...settings, yujing: { ...settings.yujing!, source: "highlights" } }); }).catch(error => pushNotice(String(error))); }}>选句入风</button>}
+              {WEB && <YuejingEntry enabled={Boolean(settings.yujing?.enabled)} />}
+              {WEB && settings.yujing?.enabled && settings.yujing.scene === "wind" && <button className="yj-capture" disabled={!selectedText.trim()} onMouseDown={event => event.preventDefault()} onClick={() => { void captureWind().catch(error => pushNotice(String(error))); }}>选句入风</button>}
               <button onClick={() => addBookmark()}>+书签</button>
               <span className="tts-menu-wrap">
                 <button className={ttsActive ? "speaking" : ""} onClick={() => setTtsMenuOpen((open) => !open)}>{ttsActive ? "朗读中" : "朗读"}</button>
@@ -2967,6 +2979,7 @@ function App() {
                 {WEB && settings.dictionary.enabled && <button onClick={() => lookup(selectedText, false, true, { context: selectedContext, range: selectedRange })}>查词</button>}
                 {!WEB && selectionKind === "text" && <button onClick={translateSelection}>翻译</button>}
                 {WEB && <button onClick={beginVocabFromSelection}>收藏生词</button>}
+                {WEB && settings.yujing?.enabled && settings.yujing.scene === "wind" && <button className="yj-capture" onMouseDown={event => event.preventDefault()} onClick={() => { void captureWind().catch(error => pushNotice(String(error))); }}>选句入风</button>}
                 <button onClick={() => speak(selectedText)}>朗读</button>
                 <button onClick={() => navigator.clipboard.writeText(selectedText).then(() => pushNotice("已复制"))}>复制</button>
                 <button className={selectedMark?.lineStyle === "solid" ? "active-tool" : ""} onClick={() => toggleSelectionMark("solid")}>直线</button>
