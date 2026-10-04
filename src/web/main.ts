@@ -4,6 +4,19 @@ import "./web.css";
 (window as any).eReadWeb = true;
 document.documentElement.dataset.ereadWeb = "true";
 
+// The page color overrides the manifest's neutral launch color in supporting PWA browsers.
+function updateWindowTheme() {
+  const root = document.documentElement;
+  let meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
+  if (!meta) {
+    meta = document.createElement("meta"); meta.name = "theme-color"; document.head.append(meta);
+  }
+  meta.content = getComputedStyle(root).getPropertyValue("--bg").trim() || "#f3efe7";
+  root.style.colorScheme = root.dataset.theme === "night" ? "dark" : "light";
+}
+new MutationObserver(updateWindowTheme).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+updateWindowTheme();
+
 async function start() {
   try {
     await installBrowserAPI();

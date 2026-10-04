@@ -21,6 +21,12 @@ const outputs = Object.keys(result.metafile.outputs).map(p => "./" + path.relati
 const css = outputs.filter(p => p.endsWith(".css"));
 fs.copyFileSync(path.join(root, "assets", "skipreader-icon.png"), path.join(out, "icon.png"));
 fs.copyFileSync(path.join(root, "assets", "skipreader-icon.svg"), path.join(out, "icon.svg"));
+const iconHash = require("node:crypto").createHash("sha256").update(fs.readFileSync(path.join(out, "icon.png"))).digest("hex").slice(0, 12);
+const installIcons = [192, 512].map(size => {
+  const filename = `icon-${iconHash}-${size}.png`;
+  fs.copyFileSync(path.join(root, "assets", size === 512 ? "skipreader-icon.png" : "skipreader-icon-192.png"), path.join(out, filename));
+  return { src: "./" + filename, sizes: `${size}x${size}`, type: "image/png", purpose: "any" };
+});
 // Include the runtime dependencies' licenses, including dependencies embedded in mammoth's browser bundle.
 const notices = [], seenPackages = new Set();
 function collectLicenses(directory) {
@@ -35,10 +41,10 @@ function collectLicenses(directory) {
 }
 for (const dependency of ["react", "react-dom", "jszip", "marked", "mammoth"]) collectLicenses(path.dirname(require.resolve(dependency + "/package.json", { paths: [root] })));
 fs.writeFileSync(path.join(out, "third-party-notices.txt"), "SkipReader · Third-party software notices\n\n" + notices.join("\n\n----------------------------------------\n\n"));
-// Existing icon is square and above the PWA minimum size. Keep a maskable-free icon to avoid crop assumptions.
-fs.writeFileSync(path.join(out, "manifest.webmanifest"), JSON.stringify({ id: "./", name: "SkipReader · 一跃", short_name: "一跃", description: "免费阅读器，自动文件备份与可选加密学习记录同步", lang: "zh-CN", start_url: "./", scope: "./", display: "standalone", background_color: "#f3efe7", theme_color: "#205b52", icons: [{ src: "./icon.png", sizes: "512x512", type: "image/png", purpose: "any" }, { src: "./icon.svg", sizes: "any", type: "image/svg+xml", purpose: "any" }] }, null, 2));
-fs.writeFileSync(path.join(out, "index.html"), `<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#205b52"><meta name="eread-dictionary-api" content="${dictionaryApi.replace(/&/g, "&amp;")}"><meta name="skipreader-sync-api" content="${syncApi}"><meta name="description" content="一跃 SkipReader：免费阅读器，支持浏览器查词插件、自动文件备份和可选加密云同步"><title>SkipReader · 一跃</title><link rel="icon" href="./icon.png"><link rel="manifest" href="./manifest.webmanifest">${css.map(p=>`<link rel="stylesheet" href="${p}">`).join("")}</head><body><div id="root">正在打开一跃…</div><script type="module" src="./assets/app.js"></script></body></html>`);
-const files = ["./", "./index.html", "./manifest.webmanifest", "./icon.png", "./icon.svg", "./third-party-notices.txt", ...outputs];
+// Rounded artwork uses purpose:any so browsers don't crop the composition again.
+fs.writeFileSync(path.join(out, "manifest.webmanifest"), JSON.stringify({ id: "./", name: "SkipReader · 一跃", short_name: "一跃", description: "免费阅读器，自动文件备份与可选加密学习记录同步", lang: "zh-CN", start_url: "./", scope: "./", display: "standalone", background_color: "#f3efe7", theme_color: "#f3efe7", icons: installIcons }, null, 2));
+fs.writeFileSync(path.join(out, "index.html"), `<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#f3efe7"><meta name="eread-dictionary-api" content="${dictionaryApi.replace(/&/g, "&amp;")}"><meta name="skipreader-sync-api" content="${syncApi}"><meta name="description" content="一跃 SkipReader：免费阅读器，支持浏览器查词插件、自动文件备份和可选加密云同步"><title>SkipReader · 一跃</title><link rel="icon" href="./icon.png"><link rel="manifest" href="./manifest.webmanifest">${css.map(p=>`<link rel="stylesheet" href="${p}">`).join("")}</head><body><div id="root">正在打开一跃…</div><script type="module" src="./assets/app.js"></script></body></html>`);
+const files = ["./", "./index.html", "./manifest.webmanifest", "./icon.png", "./icon.svg", ...installIcons.map(icon => icon.src), "./third-party-notices.txt", ...outputs];
 const hash = require("node:crypto").createHash("sha256");
 for (const file of files.filter(p => p !== "./")) hash.update(fs.readFileSync(path.join(out, file)));
 const version = "eread-web-" + hash.digest("hex").slice(0, 16);

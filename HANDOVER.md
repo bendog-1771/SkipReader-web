@@ -31,7 +31,7 @@
 | src/renderer/app/App.tsx | 共用界面、阅读、朗读、划线、笔记、生词 |
 | src/renderer/shared/styles/app.css / src/web/web.css | 共享样式与网页样式 |
 | src/shared / src/preload.d.ts | 类型、默认值、导出、接口定义 |
-| assets/skipreader-icon.svg / png | 新品牌图标 |
+| assets/skipreader-icon-master.png / skipreader-icon-design.md | 图标原图与制作记录；512/192 PNG 为安装图标，SVG 为位图包装 |
 | scripts/build-web.cjs | 从源码构建、许可、安装文件和离线缓存 |
 | scripts/*regression* | 功能与后台检查 |
 | dictionary-worker | 必应词典后台 |
