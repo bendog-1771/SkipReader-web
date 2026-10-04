@@ -1,0 +1,9 @@
+name = "eread-dictionary"
+main = "worker.mjs"
+compatibility_date = "2026-10-03"
+workers_dev = true
+# Keep this deployment on Workers Free. No paid services, databases or AI bindings.
+[vars]
+ALLOWED_ORIGINS = "https://bendog-1771.github.io,http://localhost:5174,http://127.0.0.1:5174"
+[observability]
+enabled = false

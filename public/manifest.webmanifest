@@ -1,0 +1,26 @@
+{
+  "id": "./",
+  "name": "eRead 网页阅读器",
+  "short_name": "eRead",
+  "description": "本地保存、浏览器插件查词的免费阅读器",
+  "lang": "zh-CN",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f3efe7",
+  "theme_color": "#2f6f62",
+  "icons": [
+    {
+      "src": "./icon.png",
+      "sizes": "256x256",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
