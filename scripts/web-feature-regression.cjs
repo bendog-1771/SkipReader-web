@@ -20,7 +20,7 @@ async function run() {
     await page.locator('.library-book').getByText('Features', { exact: true }).waitFor();
     check('Book management uses discreet dots and a clear accessible name', await page.locator('.book-actions-button').innerText() === '•••' && (await page.locator('.book-actions-button').getAttribute('aria-label')).includes('管理《Features》'));
     await page.locator('.library-book').getByText('Features', { exact: true }).click(); await page.locator('.reader-text p').first().waitFor();
-    check('Dictionary is optional and initially hidden', await page.locator('.tabs').getByRole('button', { name: '查词', exact: true }).count() === 0);
+    check('Dictionary defaults on and exposes lookup', await page.locator('.tabs').getByRole('button', { name: '查词', exact: true }).count() === 1);
     // Chapter navigation must preserve the earlier chapter's independent location.
     await page.waitForTimeout(350);
     await page.evaluate(() => { const reader = document.querySelector('.reader-scroll'); const p = [...reader.querySelectorAll('p')].find(p => p.textContent.startsWith('Position 18:')); reader.scrollTop += p.getBoundingClientRect().top - reader.getBoundingClientRect().top - 80; });
@@ -104,6 +104,8 @@ async function run() {
     await page.locator('.toc-title').filter({ hasText: 'First Chapter' }).click(); await page.getByRole('heading', { name: 'First Chapter', exact: true }).waitFor();
     await page.waitForTimeout(350);
     await page.locator('.tabs').getByRole('button', { name: '设置', exact: true }).click();
+    await page.locator('.side-panel').getByLabel('启用内置查词', { exact: true }).uncheck();
+    check('Lookup can still be explicitly disabled',await page.locator('.tabs').getByRole('button',{name:'查词',exact:true}).count()===0);
     await page.locator('.side-panel').getByLabel('启用内置查词', { exact: true }).check();
     await page.locator('.tabs').getByRole('button', { name: '查词', exact: true }).waitFor();
     check('Enabling lookup adds its panel without requiring a reader account', true);
@@ -130,7 +132,7 @@ async function run() {
     await page.getByTitle('设置', { exact: true }).click();
     await page.locator('.settings-categories').getByRole('button', { name: '备份与日志', exact: true }).click();
     await page.getByRole('button', { name: '帮助', exact: true }).click();
-    check('Help explains optional lookup and generic extensions without brand promotion', await page.locator('.info-modal').innerText().then(text => text.includes('第三方浏览器插件') && text.includes('默认关闭') && !/扇贝|沙拉/.test(text)));
+    check('Help explains optional lookup and generic extensions without brand promotion', await page.locator('.info-modal').innerText().then(text => text.includes('第三方浏览器插件') && text.includes('内置查词默认开启') && text.includes('背景跟随应用主题默认关闭') && text.includes('跃境与星轨练习') && !/扇贝|沙拉/.test(text)));
     await page.locator('.info-modal .float-close').click(); await page.getByRole('button', { name: '关于', exact: true }).click();
     check('About includes content rights, dictionary attribution and local privacy', await page.locator('.info-modal').innerText().then(text => text.includes('著作权') && text.includes('许可') && text.includes('不上传查词后台') && !/扇贝|沙拉/.test(text)));
     await page.screenshot({ path: path.join(out, 'about.png') });

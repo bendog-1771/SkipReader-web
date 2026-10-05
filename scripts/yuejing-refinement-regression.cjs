@@ -10,6 +10,7 @@ const out=path.resolve(__dirname,'../reports/yuejing-refinement');
  const tab=async name=>{await page.getByRole('tab',{name,exact:true}).click();};
  try{
   await page.goto('http://localhost:5174/lab.html');await page.locator('.yj-lab-home').waitFor();
+  await page.locator('.yj-toggle').click();await tab('画面');await page.getByLabel('背景跟随应用主题',{exact:true}).check();await page.getByLabel('关闭气候设置').click();
   const seen={};for(const id of ['wind','ocean','island','orbit']){
    await page.locator(`[data-scene=${id}]`).click();if(['ocean','island'].includes(id))await page.waitForFunction(id=>window.skipReaderYujingSnapshot().models[id]===(id==='island'?'retired':'ready'),id);
    seen[id]=[];for(const theme of themes){await page.getByLabel('实验室主题').selectOption(theme);await page.waitForFunction(theme=>window.skipReaderYujingSnapshot().theme===theme,theme);await page.waitForTimeout(180);const state=await snap();seen[id].push(state.palette);check(`${id} follows ${theme} with one visible scene`,state.visibleLayers.length===1&&state.visibleLayers[0]===id);}

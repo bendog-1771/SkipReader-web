@@ -23,7 +23,7 @@ export function browserSettings(input: Partial<AppSettings> = {}): AppSettings {
   for (const key of ["dictionary", "ai", "tts", "library", "backgrounds", "onboarding", "vocabulary", "shortcuts"] as const) {
     (settings as any)[key] = { ...defaults[key], ...input[key] };
   }
-  settings.dictionary.enabled = Boolean(settings.dictionary.enabled);
+  settings.dictionary.enabled = settings.dictionary.enabled !== false;
   const art = { ...DEFAULT_YUJING, ...input.yujing };
   art.enabled = art.enabled === true;
   if ((art.scene as string) === "train") art.scene = "island";
@@ -34,7 +34,7 @@ export function browserSettings(input: Partial<AppSettings> = {}): AppSettings {
   art.manualQuotes = Array.isArray(art.manualQuotes) ? art.manualQuotes.filter(q => typeof q === "string").slice(0,24).map(q => q.slice(0,2000)) : [];
   for (const [key, low, high, fallback] of [["speed",0,1.5,.7],["intensity",.1,1,.85],["soundStrength",.5,3,1.8],["readerOpacity",0,1,.78],["planetCount",8,48,24]] as const) art[key] = Number.isFinite(art[key]) ? Math.max(low,Math.min(high,art[key])) : fallback;
   art.paused = art.paused === true;
-  art.matchTheme = art.matchTheme !== false;
+  art.matchTheme = art.matchTheme === true;
   art.chromeOpacity = Number.isFinite(art.chromeOpacity) ? Math.max(0, Math.min(1, art.chromeOpacity!)) : .34;
   art.bottlesEnabled = art.bottlesEnabled !== false;
   art.quality = ["auto", "battery", "high"].includes(art.quality || "") ? art.quality : "auto";
@@ -188,7 +188,7 @@ export async function installBrowserAPI() {
     const tx = opening.transaction!, state = tx.objectStore("state"), saved = state.get("data");
     saved.onsuccess = () => { if (!saved.result) return; const next = saved.result as Data; next.chapters.forEach(c => { if (c.plainText) tx.objectStore("chapterText").put(c.plainText, c.id); c.plainText = ""; }); state.put(next, "data"); };
   };
-  opening.onblocked = () => { document.getElementById("root")!.textContent = "请关闭其他 eRead 网页窗口以完成数据升级，再重新打开。"; };
+  opening.onblocked = () => { document.getElementById("root")!.textContent = "请关闭其他 SkipReader 网页窗口以完成数据升级，再重新打开。"; };
   db = await request(opening); await refresh();
   data.settings = browserSettings(data.settings);
   for (const position of journal()) await savePosition(position);

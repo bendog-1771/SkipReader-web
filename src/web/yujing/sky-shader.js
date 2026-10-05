@@ -1,10 +1,26 @@
 // The sky and the sea reflection sample one shared, directional cloud field.
 export const atmosphereGLSL=`
+uniform sampler2D skyMap;uniform float skyReady,skyExposure,skyTheme;uniform vec3 skyTint,skyWarmth;
 float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
 float noise(vec2 p){vec2 i=floor(p),f=fract(p),u=f*f*(3.-2.*f);return mix(mix(hash(i),hash(i+vec2(1,0)),u.x),mix(hash(i+vec2(0,1)),hash(i+vec2(1)),u.x),u.y);}
 float cloud(vec2 p){return noise(p)*.57+noise(p*2.13)*.28+noise(p*4.31)*.15;}
 vec3 atmosphere(vec3 d,vec3 top,vec3 horizon,vec3 glow,vec3 sun,float time){
- float h=max(d.y,0.);vec3 c=mix(horizon,top,pow(h,.38));float s=max(dot(d,sun),0.);
+ float s=max(dot(d,sun),0.);
+ if(skyReady>.5){
+  // One photographic environment supplies the sky and water reflection.
+  vec2 skyUV=vec2(atan(d.z,d.x)/6.2831853+.5+time*.00025,asin(clamp(d.y,-1.,1.))/3.14159265+.5);
+  vec3 photo=min(texture2D(skyMap,skyUV).rgb*skyExposure,vec3(12.));
+  photo*=mix(vec3(1.),skyWarmth,1.-smoothstep(.02,.55,d.y));
+  float luminance=dot(photo,vec3(.2126,.7152,.0722));
+  photo=mix(photo,photo*skyTint*1.45,skyTheme);
+  if(weather>.5&&weather<1.5)photo=mix(photo,vec3(luminance)*mix(horizon,vec3(1.),.6),.48);
+  if(night>.5)photo=mix(photo*.025,vec3(luminance)*mix(top,horizon,smoothstep(0.,.25,d.y))*.35,.78);
+  float fade=smoothstep(-.12,.035,d.y);
+  vec3 c=mix(horizon*.65,photo,fade);
+  if(night>.5)c+=glow*pow(s,6400.)*.65;
+  return c;
+ }
+ float h=max(d.y,0.);vec3 c=mix(horizon,top,pow(h,.38));
  vec2 uv=d.xz/max(d.y+.18,.09)*1.7+vec2(time*.008,time*.002);
  uv*=2.1;
  float density=cloud(uv+2.7),edge=cloud(uv+2.7+sun.xz*.24),coverage=weather<.5?.15:weather<1.5?.84:.48;
@@ -18,5 +34,6 @@ vec3 atmosphere(vec3 d,vec3 top,vec3 horizon,vec3 glow,vec3 sun,float time){
  c+=glow*(halo+silver)*(1.-bank*.4);
  c+=glow*pow(s,6400.)*2.8*(1.-bank*.85);
  if(night>.5){vec2 grid=d.xz/max(d.y+.18,.09)*190.;float star=pow(hash(floor(grid)),65.)*(1.-smoothstep(.02,.10,length(fract(grid)-.5)));c+=vec3(.65,.77,.91)*star*smoothstep(.12,.45,d.y)*(1.-bank);}
+
  return c;
 }`;

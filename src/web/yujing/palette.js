@@ -11,10 +11,10 @@ const moods={day:{top:'#3888b9',horizon:'#d4e5e9',water:'#135f7e',sun:'#fff0c6'}
 function mix(a,b,t){const aa=parseInt(a.slice(1),16),bb=parseInt(b.slice(1),16);return '#'+[16,8,0].map(s=>Math.round(((aa>>s)&255)*(1-t)+((bb>>s)&255)*t).toString(16).padStart(2,'0')).join('');}
 export function scenePalette(settings){
  const theme=themePalettes[settings.theme]||themePalettes.paper,mood=moods[settings.mood]||moods.day;
- if(settings.matchTheme===false)return {...themePalettes.night,...mood,space:'#102237'};
+ if(settings.matchTheme===false)return {...themePalettes.night,...mood,ink:settings.scene==='wind'&&settings.mood!=='night'?'#233c52':themePalettes.night.ink,space:'#102237'};
  // Keep the theme in the water and shadows, but let sunrise and sunset be visibly different.
  const weight=settings.scene==='ocean'?(settings.theme==='night'?(settings.mood==='night'?.72:.20):settings.mood==='day'?.48:settings.mood==='night'?.86:.76):settings.theme==='night'?.16:settings.mood==='day'?.08:settings.mood==='night'?.45:.24;
  const result={...theme};for(const key of ['top','horizon','water','sun'])result[key]=mix(theme[key],mood[key],weight);
  return result;
 }
-export function gamePalette(theme){const p=themePalettes[theme]||themePalettes.paper;return {'--yj-game-surface':p.surface,'--yj-game-text':p.text,'--yj-game-muted':p.muted,'--yj-game-border':p.border,'--yj-game-accent':p.ui,'--yj-game-star':p.accent};}
+export function gamePalette(theme){const p=themePalettes[theme]||themePalettes.paper;return {'--yj-game-surface':p.surface,'--yj-game-text':p.text,'--yj-game-muted':p.muted,'--yj-game-border':p.border,'--yj-game-accent':p.ui,'--yj-game-star':p.accent,'--yj-game-accent-text':theme==='night'?'#071013':'#fff'};}
