@@ -55,7 +55,7 @@ const hash = require("node:crypto").createHash("sha256");
 for (const file of files.filter(p => p !== "./")) hash.update(fs.readFileSync(path.join(out, file)));
 const version = "eread-web-" + hash.digest("hex").slice(0, 16);
 fs.writeFileSync(path.join(out, "sw.js"), `const CACHE=${JSON.stringify(version)};const FILES=${JSON.stringify(coreFiles)};const OPTIONAL=${JSON.stringify(optionalFiles)};
-self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(FILES)));});
+self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(FILES.map(file=>new Request(file,{cache:'reload'})))));});
 self.addEventListener('message',event=>{if(event.data==='SKIP_WAITING')self.skipWaiting();});
 self.addEventListener('activate',event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key.startsWith('eread-web-')&&key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim()));});
 self.addEventListener('fetch',event=>{if(event.request.method!=='GET'||new URL(event.request.url).origin!==self.location.origin)return;
