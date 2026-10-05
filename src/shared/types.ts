@@ -3,7 +3,7 @@ export type ThemeName = "paper" | "night" | "sepia" | "forest" | "blue" | "dusk"
 export interface YujingSettings {
   enabled: boolean;
   scene: "wind" | "ocean" | "island" | "orbit";
-  mood: "dawn" | "day" | "dusk" | "night";
+  mood: "auto" | "dawn" | "day" | "dusk" | "night";
   speed: number;
   intensity: number;
   paused: boolean;

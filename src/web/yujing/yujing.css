@@ -17,7 +17,7 @@
 @media(prefers-reduced-motion:reduce){.yj-backdrop,.yj-progress>div,.yj-game-card button{transition:none}}
 
 /* A shared reading palette, with a clear place for the atmosphere entry. */
-.library-nav .yj-entry-nav{display:flex!important;justify-content:flex-start;gap:10px;border-radius:8px!important;padding:8px 12px!important;min-height:38px;margin-top:5px;border-top:1px solid var(--border)!important;border-left-color:transparent!important;border-right-color:transparent!important;border-bottom-color:transparent!important;color:var(--text);background:transparent}
+.library-nav .yj-entry-nav{display:flex!important;justify-content:flex-start;gap:10px;border-radius:8px!important;padding:8px 12px!important;min-height:38px;margin-top:10px;border-top-color:transparent!important;border-left-color:transparent!important;border-right-color:transparent!important;border-bottom-color:transparent!important;color:var(--text);background:transparent}
 .library-nav .yj-entry-nav svg{width:28px;color:var(--muted)}
 .library-nav .yj-entry-nav b{font-weight:600}.library-nav .yj-entry-nav small{margin-left:auto;font-size:10px;color:var(--muted);font-weight:400}.library-nav .yj-entry-nav i{margin-left:-4px}
 .yj-entry b{font-weight:500}.yj-orbit .yj-veil{background:none}

@@ -12,7 +12,8 @@ for(const [width,height]of [[1440,1000],[390,844],[820,520]]){
  check(`All long prose survives ordered pages at ${width}px`,pages.length>1&&pages.join('')===long);
  check(`Continuation stays at one readable position at ${width}px`,positions.every(p=>JSON.stringify(p)===JSON.stringify(positions[0])));
 }
-const e=engine(1440,1000,[sentence]);drawWind(e,.12);const cache=e.windCache;e.settings.paused=true;const time=e.windElapsed;drawWind(e,1);check('Paused text keeps its readable page and clock',e.windElapsed===time&&e.windCards.length===1);
+const e=engine(1440,1000,[sentence]);drawWind(e);check('Immediate wind redraw has a finite clock without a frame delta',Number.isFinite(e.windElapsed)&&Number.isFinite(e.windCards[0].age));drawWind(e,.12);const cache=e.windCache;e.settings.paused=true;const time=e.windElapsed;drawWind(e,1);check('Paused text keeps its readable page and clock',e.windElapsed===time&&e.windCards.length===1);
+e.settings.paused=false;drawWind(e,.5);const card=e.windRows[0],elapsed=e.windElapsed;e.quotes=[...e.quotes];drawWind(e,.2);check('Content-equivalent source arrays preserve card identity and playback',e.windRows[0]===card&&e.windElapsed>elapsed);
 e.settings.paused=false;e.quotes=[long];drawWind(e,.12);check('Replacing sources immediately invalidates the old layout',e.windCards[0].source===long&&e.windCards[0].page===0);
 for(let i=0;i<40;i++){e.quotes=[sentence+i];drawWind(e,.12);}check('Excerpt layout cache has a bounded memory budget',cache.size<=24);
 fs.mkdirSync('reports/harmony',{recursive:true});fs.writeFileSync('reports/harmony/wind-layout-checks.json',JSON.stringify({checks},null,2));

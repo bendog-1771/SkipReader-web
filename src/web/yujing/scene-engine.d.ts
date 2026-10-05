@@ -4,7 +4,7 @@ export class SceneEngine {
  configure(settings: YujingSettings & { reading?: boolean; game?: boolean; focusedGame?: boolean; theme?: ThemeName }): void;
  quotes: string[];
  setWords(words: string[], lit?: Set<number>): void;
- energy: { bass: number; mid: number; high: number; level: number };
+ energy: { bass: number; mid: number; high: number; level: number; bands?: Float32Array };
  onStar?: () => void;
  onBottle?: () => void;
  castBottle(style?: BottleStyle): void;

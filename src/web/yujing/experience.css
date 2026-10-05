@@ -15,10 +15,10 @@
 .app-shell.yj-playing .library-book>button,html[data-yj-sleeping=true] .app-shell.yj-memory-mode .library-book>button{animation-play-state:paused!important}
 
 /* Night water must not swallow navigation and book labels in a light reader theme. */
-.app-shell:has(.yj-backdrop[data-dark-sea=true]) .library-sidebar :is(.brand strong,.brand small,.shelf-header,.shelf-empty,.library-nav button:not(.active),.shelf-list button:not(.active)){color:#edf4fa;text-shadow:0 1px 2px #02132240}
-.app-shell:has(.yj-backdrop[data-dark-sea=true]) .library-nav button:not(.active) :is(span,svg,small){color:#d5e4ee}
-.app-shell:has(.yj-backdrop[data-dark-sea=true]) .library-nav .yj-entry[data-enabled=true]{color:#edf4fa!important}
-.app-shell:has(.yj-backdrop[data-dark-sea=true]) .library-books .library-book :is(strong,small,.book-actions-button){color:#edf4fa;text-shadow:0 1px 2px #02132266}
+.app-shell:has(.yj-backdrop[data-dark-scene=true]) .library-sidebar :is(.brand strong,.brand small,.shelf-header,.shelf-empty,.library-nav button:not(.active),.shelf-list button:not(.active)){color:#edf4fa;text-shadow:0 1px 2px #02132240}
+.app-shell:has(.yj-backdrop[data-dark-scene=true]) .library-nav button:not(.active) :is(span,svg,small){color:#d5e4ee}
+.app-shell:has(.yj-backdrop[data-dark-scene=true]) .library-nav .yj-entry[data-enabled=true]{color:#edf4fa!important}
+.app-shell:has(.yj-backdrop[data-dark-scene=true]) .library-books .library-book :is(strong,small,.book-actions-button){color:#edf4fa;text-shadow:0 1px 2px #02132266}
 /* The practice stays on the existing sky, with no card, border or blur layer. */
 .yj-recall-choices{grid-template-columns:1fr}.yj-recall-choices:has(>button:nth-child(2)){grid-template-columns:1fr 1fr}.yj-recall-choices button{justify-content:center;text-align:center}
 .yj-play-focused{display:flex;align-items:safe center;justify-content:center;padding:26px 24px;background:radial-gradient(ellipse at 50% 58%,#0614236b,transparent 68%)}
@@ -31,3 +31,6 @@ html[data-yj-bottle-hover=true] .app-shell :is(.library-main,.library-books){cur
 .yj-game-top{flex-wrap:wrap;gap:8px}
 .app-shell:has(.yj-play)>:is(.library-sidebar,main),.yj-lab:has(.yj-play)>:is(.yj-lab-header,main,footer){visibility:hidden;pointer-events:none}
 @media(max-width:760px){.yj-play-focused{padding:14px 12px;align-items:flex-start}.yj-play-focused .yj-game-card{padding:12px 8px;width:100%;border-radius:0}.yj-play-focused .yj-question h2{font-size:23px}.yj-play-focused .yj-game-top button{font-size:11px;padding:7px 10px}.yj-play-focused :is(.yj-game-controls,.yj-question,.yj-score,.yj-flow,.yj-feedback,.yj-game-card .yj-help,.yj-empty,.yj-complete,.yj-round-summary){background:transparent}.yj-play-focused .yj-question{padding:14px 0 14px 14px}.yj-play-focused .yj-score{padding:9px 0}.yj-play-focused .yj-game-controls{padding:12px 0}.yj-play-focused .yj-round-summary{padding-inline:0}.yj-play-focused .yj-choices{background:transparent}}
+
+/* Scenery contrast follows the visible art; panels keep the chosen application theme. */
+.app-shell:has(.yj-backdrop[data-dark-scene=true]) .library-sidebar{background:color-mix(in srgb,#172b3b var(--yj-chrome,34%),transparent)}

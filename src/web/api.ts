@@ -28,7 +28,7 @@ export function browserSettings(input: Partial<AppSettings> = {}): AppSettings {
   art.enabled = art.enabled === true;
   if ((art.scene as string) === "train") art.scene = "island";
   if (!["wind", "ocean", "island", "orbit"].includes(art.scene)) art.scene = "ocean";
-  if (!["dawn", "day", "dusk", "night"].includes(art.mood)) art.mood = "day";
+  if (!["auto", "dawn", "day", "dusk", "night"].includes(art.mood)) art.mood = "auto";
   if (!["highlights", "chapter", "manual"].includes(art.source)) art.source = "highlights";
   art.blend = art.blend === "mix" ? "mix" : "art";
   art.manualQuotes = Array.isArray(art.manualQuotes) ? art.manualQuotes.filter(q => typeof q === "string").slice(0,24).map(q => q.slice(0,2000)) : [];

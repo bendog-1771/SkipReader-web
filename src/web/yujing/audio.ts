@@ -1,4 +1,4 @@
-export type AudioEnergy = { bass: number; mid: number; high: number; level: number };
+export type AudioEnergy = { bass: number; mid: number; high: number; level: number; bands?: Float32Array };
 export class AtmosphereAudio {
   private context?: AudioContext;
   private analyser?: AnalyserNode;
@@ -31,19 +31,27 @@ export class AtmosphereAudio {
     const context = new AudioContext(); this.context = context;
     await context.resume();
     if(serial!==this.serial || context.state==='closed'){await context.close().catch(()=>{});return false;}
-    this.analyser = context.createAnalyser(); this.analyser.fftSize = 1024; this.analyser.smoothingTimeConstant = .72;
+    this.analyser = context.createAnalyser(); this.analyser.fftSize = 1024; this.analyser.smoothingTimeConstant = .45;
     if (playback) { this.gain = context.createGain(); this.gain.gain.value = this.volume; this.analyser.connect(this.gain); this.gain.connect(context.destination); }
     return true;
   }
   private follow(label: string) {
-    const spectrum = new Uint8Array(512), wave = new Uint8Array(1024);let lastMusic=performance.now();const bin=(hz:number)=>Math.min(511,Math.max(0,Math.floor(hz/this.context!.sampleRate*1024)));
+    const spectrum = new Uint8Array(512), wave = new Uint8Array(1024), bands = new Float32Array(32);let lastMusic=performance.now();const bin=(hz:number)=>Math.min(511,Math.max(0,Math.floor(hz/this.context!.sampleRate*1024)));
+    const ranges=Array.from({length:32},(_,k)=>{
+      const start=bin(80*(6000/80)**(k/32)),end=Math.max(start+1,bin(80*(6000/80)**((k+1)/32)));return [start,end];
+    });
+    const average = (a:number,b:number) => { let sum=0;for(let i=a;i<b;i++)sum+=spectrum[i];return Math.min(1,sum/(b-a)/255*2.6); };
     const loop = () => {
       if (!this.analyser) return;
       this.analyser.getByteFrequencyData(spectrum); this.analyser.getByteTimeDomainData(wave);
-      const average = (a: number, b: number) => { let sum = 0; for (let i=a;i<b;i++) sum += spectrum[i]; return Math.min(1,sum/(b-a)/255*2.6); };
       let sum = 0; for (const v of wave) sum += ((v-128)/128)**2;
       const target = Math.min(1,Math.sqrt(sum/wave.length)*7);
-      this.energy = { bass: average(bin(20),Math.max(1,bin(250))), mid: average(bin(250),bin(2000)), high: average(bin(2000),bin(10000)), level: this.energy.level*.65+target*.35 };
+      for(let k=0;k<32;k++){
+        const [start,end]=ranges[k];
+        let power=0;for(let i=start;i<end;i++)power+=spectrum[i]**2;
+        bands[k]=Math.min(1,Math.sqrt(power/(end-start))/255*2.1);
+      }
+      this.energy = { bands, bass: average(bin(20),Math.max(1,bin(250))), mid: average(bin(250),bin(2000)), high: average(bin(2000),bin(10000)), level: this.energy.level*.65+target*.35 };
       if(this.energy.level>.015)lastMusic=performance.now();
       this.changed(performance.now()-lastMusic>3500?label+' · 已连接，等待音乐':label, this.energy); this.frame = requestAnimationFrame(loop);
     }; this.frame = requestAnimationFrame(loop);
