@@ -10,7 +10,7 @@ const out=path.resolve(__dirname,'../reports/yuejing-refinement');
  try{
   await page.goto('http://localhost:5174/lab.html');await page.locator('.yj-lab-home').waitFor();
   const seen={};for(const id of ['wind','ocean','island','orbit']){
-   await page.locator(`[data-scene=${id}]`).click();if(['ocean','island'].includes(id))await page.waitForFunction(id=>window.skipReaderYujingSnapshot().models[id]==='ready',id);
+   await page.locator(`[data-scene=${id}]`).click();if(['ocean','island'].includes(id))await page.waitForFunction(id=>window.skipReaderYujingSnapshot().models[id]===(id==='island'?'retired':'ready'),id);
    seen[id]=[];for(const theme of themes){await page.getByLabel('实验室主题').selectOption(theme);await page.waitForFunction(theme=>window.skipReaderYujingSnapshot().theme===theme,theme);await page.waitForTimeout(180);const state=await snap();seen[id].push(state.palette);check(`${id} follows ${theme} with one visible scene`,state.visibleLayers.length===1&&state.visibleLayers[0]===id);}
    check(`${id} has six distinct matching palettes`,new Set(seen[id].map(p=>JSON.stringify(p))).size===6);
   }
@@ -32,7 +32,7 @@ const out=path.resolve(__dirname,'../reports/yuejing-refinement');
   await page.screenshot({path:path.join(out,'ocean-a.png')});a=await snap();await page.waitForTimeout(1100);await page.screenshot({path:path.join(out,'ocean-b.png')});b=await snap();
   check('Continuous sea stays on the native Blender mesh while time advances',a.models.ocean==='ready'&&b.time>a.time&&b.triangles>40000);
   await page.locator('[data-scene=island]').click();await page.waitForTimeout(400);await page.screenshot({path:path.join(out,'garden-blue.png')});
-  check('The refined garden loads within the real-time triangle budget',(await snap()).models.island==='ready'&&(await snap()).triangles<70000);
+  check('Book memories use a canvas wall instead of the retired island',(await snap()).models.island==='retired'&&(await snap()).triangles<70000);
   await page.emulateMedia({reducedMotion:'reduce'});a=await snap();await page.waitForTimeout(500);b=await snap();check('Reduced motion freezes the garden and sky clock',a.time===b.time);
   await page.locator('[data-scene=orbit]').click();await page.waitForTimeout(120);a=await snap();await page.waitForTimeout(400);b=await snap();check('Reduced motion also freezes stellar precession',JSON.stringify(a.rings)===JSON.stringify(b.rings));
   await page.emulateMedia({reducedMotion:'no-preference'});await page.goto('http://localhost:5174/');await page.getByRole('button',{name:'导入书籍',exact:true}).waitFor();

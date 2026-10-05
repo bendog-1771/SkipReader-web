@@ -6,7 +6,6 @@ export class SceneEngine {
  setWords(words: string[], lit?: Set<number>): void;
  energy: { bass: number; mid: number; high: number; level: number };
  onStar?: () => void;
- onStarLayout?: (x: number, y: number, radius: number) => void;
  onBottle?: () => void;
  castBottle(style?: BottleStyle): void;
  collectBottle(): void;
@@ -14,5 +13,5 @@ export class SceneEngine {
  transition(): void;
  gust(quote?: string): void;
  dispose(): void;
- snapshot(): { triangles: number; renderFrames:number; time: number; theme?:ThemeName; palette:Record<string,string>; rings:number[][]; targets: Array<{ index: number; x: number; y: number; fontPixels?:number }>; energy: number; activeScene: string; visibleLayers: string[]; models: Record<string,string>; stars: number; planetCount: number; gust: number; pointer: number[]; smoothPointer:number[]; geometries:number };
+ snapshot(): { coreFeedback: {pressed:boolean;hovered:boolean;scale?:number;opacity?:number}; triangles: number; renderFrames:number; time: number; theme?:ThemeName; palette:Record<string,string>; rings:number[][]; targets: Array<{ index: number; x: number; y: number; fontPixels?:number }>; energy: number; activeScene: string; visibleLayers: string[]; models: Record<string,string>; stars: number; planetCount: number; gust: number; pointer: number[]; smoothPointer:number[]; geometries:number };
 }

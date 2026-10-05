@@ -60,16 +60,16 @@ export class AtmosphereAudio {
       const kick=ctx.createOscillator(),g=ctx.createGain();kick.frequency.setValueAtTime(90,now);kick.frequency.exponentialRampToValueAtTime(35,now+.25);g.gain.setValueAtTime(.1,now);g.gain.exponentialRampToValueAtTime(.001,now+.4);kick.connect(g);g.connect(this.analyser);kick.start();kick.stop(now+.5);this.oscillators.add(kick);kick.onended=()=>{kick.disconnect();g.disconnect();this.oscillators.delete(kick);};
     };chord();this.timer=window.setInterval(chord,4000);this.follow("试听轻音正在律动");
   }
-  async share(system: boolean) {
+  async share(system: boolean | "player") {
     if(!navigator.mediaDevices?.getDisplayMedia)throw new Error("这里没有声音共享入口。请在 Windows 的 Edge / Chrome 中打开，或选择本地音乐");
     // Open the chooser within the click gesture. No screen frames are read or recorded.
-    const pending=navigator.mediaDevices.getDisplayMedia({video:{displaySurface:system?"monitor":"browser"},audio:true,...{systemAudio:"include",windowAudio:system?"system":"window",monitorTypeSurfaces:"include",selfBrowserSurface:"exclude"}} as DisplayMediaStreamOptions);
+    const pending=navigator.mediaDevices.getDisplayMedia({video:{displaySurface:system==="player"?"window":system?"monitor":"browser",frameRate:1},audio:{suppressLocalAudioPlayback:false},...{systemAudio:system===true?"include":"exclude",windowAudio:system==="player"?"window":system===true?"system":"exclude",monitorTypeSurfaces:system===true?"include":"exclude",selfBrowserSurface:"exclude"}} as DisplayMediaStreamOptions);
     pending.catch(()=>{});await this.stop(false);const serial=this.serial;
     let stream:MediaStream;try{stream=await pending;}catch(e){if(serial===this.serial)this.changed("已取消声音共享",this.energy);return;}
     if(serial!==this.serial){stream.getTracks().forEach(t=>t.stop());return;}
-    if(!stream.getAudioTracks().length){stream.getTracks().forEach(t=>t.stop());throw new Error(system?"没有收到系统声音。请选择「整个屏幕」，并勾选共享系统音频；此浏览器若没有该选项，请换用 Windows Edge / Chrome":"没有收到音轨，请勾选「共享标签页音频」");}
+    if(!stream.getAudioTracks().length){stream.getTracks().forEach(t=>t.stop());throw new Error(system==="player"?"未收到播放器声音。若授权窗口没有「共享窗口音频」，此浏览器不支持单独连接播放器；可选择标签页音乐或电脑媒体声音。":system?"没有收到系统声音。请选择「整个屏幕」，并勾选共享系统音频；此浏览器若没有该选项，请换用 Windows Edge / Chrome":"没有收到音轨，请勾选「共享标签页音频」");}
     this.stream=stream;await this.initialize(false);if(serial!==this.serial){stream.getTracks().forEach(t=>t.stop());return;}
     this.source=this.context!.createMediaStreamSource(new MediaStream(stream.getAudioTracks()));this.source.connect(this.analyser!);
-    stream.getTracks().forEach(track=>track.addEventListener("ended",()=>void this.stop(),{once:true}));this.follow(system?"正在分析电脑声音":"正在分析标签页声音");
+    stream.getTracks().forEach(track=>track.addEventListener("ended",()=>void this.stop(),{once:true}));this.follow(system==="player"?"正在分析播放器声音":system?"正在分析电脑声音":"正在分析标签页声音");
   }
 }

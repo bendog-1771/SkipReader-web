@@ -5,7 +5,7 @@ import type { AppSettings, Book, Bookmark, Chapter, DictionaryResult, Notebook, 
 import "../shared/styles/app.css";
 import { EXPORT_STYLES, learningExportName, exportExtension, type LearningExportFormat } from "../../shared/learningExport";
 import { ProtectionPanel } from "../../web/ProtectionPanel";
-import { Yujing, YuejingEntry } from "../../web/yujing/Yujing";
+import { Yujing, YuejingEntry, OrbitPracticeEntry } from "../../web/yujing/Yujing";
 import { LibraryIcon } from "../../web/LibraryIcon";
 
 const WEB = typeof window !== "undefined" && Boolean((window as any).eReadWeb);
@@ -2660,6 +2660,7 @@ function App() {
   }
 
   const filteredVocab = vocab.filter((item) => item.notebookId === activeNotebook);
+  const bookMemories = WEB && settings.yujing?.enabled && settings.yujing.scene === "island";
   const appBackground = viewMode === "reader" ? settings.backgrounds.readerPath : settings.backgrounds.appPath;
   const appBackgroundPosition = viewMode === "reader"
     ? `${settings.backgrounds.readerPositionX}% ${settings.backgrounds.readerPositionY}%`
@@ -2675,7 +2676,8 @@ function App() {
   return (
     <div
       ref={appShellRef}
-      className={`app-shell ${appBackground ? "has-custom-background" : ""} ${WEB && settings.yujing?.enabled ? "yj-enabled" : ""} ${viewMode === "library" ? "library-mode" : "reader-mode"} ${readerSideCollapsed ? "side-collapsed" : ""}`}
+      data-yj-paused={settings.yujing?.paused || false}
+      className={`app-shell ${appBackground ? "has-custom-background" : ""} ${WEB && settings.yujing?.enabled ? `yj-enabled ${settings.yujing.scene === "island" ? "yj-memory-mode" : ""}` : ""} ${viewMode === "library" ? "library-mode" : "reader-mode"} ${readerSideCollapsed ? "side-collapsed" : ""}`}
       style={{ "--yj-paper": `${Math.round((settings.yujing?.readerOpacity ?? .78) * 100)}%`, "--yj-chrome": `${Math.round((settings.yujing?.chromeOpacity ?? .34) * 100)}%` } as React.CSSProperties}
       onContextMenu={(event) => {
         const target = event.target as HTMLElement | null;
@@ -2708,6 +2710,7 @@ function App() {
               <button aria-label="我的生词" aria-current={libraryTab === "vocab" ? "page" : undefined} className={libraryTab === "vocab" ? "active" : ""} onClick={() => { if (WEB && libraryTab !== "vocab") setLibrarySearch(""); setLibraryTab("vocab"); }}><span aria-hidden="true"><LibraryIcon kind="words" /></span><b>我的生词</b></button>
               <button aria-label="我的笔记" aria-current={libraryTab === "notes" ? "page" : undefined} className={libraryTab === "notes" ? "active" : ""} onClick={() => { if (WEB && libraryTab !== "notes") setLibrarySearch(""); setLibraryTab("notes"); }}><span aria-hidden="true"><LibraryIcon kind="notes" /></span><b>我的笔记</b></button>
               {WEB && <YuejingEntry nav enabled={Boolean(settings.yujing?.enabled)} />}
+              {WEB && settings.yujing?.enabled && settings.yujing.scene === "orbit" && <OrbitPracticeEntry />}
             </nav>
             {WEB && <button className="mobile-library-toggle" aria-expanded={libraryNavigationOpen} onClick={() => setLibraryNavigationOpen(value => !value)}>{libraryNavigationOpen ? "收起书架与统计 ▴" : "书架与统计 ▾"}</button>}
             <div className="shelf-header"><span>我的书架</span><button onClick={beginCreateShelf} title="新建书架">＋</button></div>
@@ -2784,10 +2787,12 @@ function App() {
             </header>
             {libraryTab === "all" || libraryTab === "favorites" ? (
               <section className={`library-books ${settings.library.bookViewMode}`}>
+                {WEB && settings.yujing?.enabled && settings.yujing.scene === "island" && <div className="memory-heading"><div><h1>书页留影</h1><p>把读过的世界，晾成一阵风。</p></div><span>{filteredBooks.length} 帧藏书</span></div>}
                 {filteredBooks.length === 0 && <Empty title={WEB ? librarySearch.trim() ? "没有找到匹配的书籍" : activeShelf !== "all" ? "这个书架还没有书" : libraryTab === "favorites" ? "还没有收藏的书籍" : "这里还没有书" : undefined} text={!WEB ? activeShelf !== "all" ? "这里还没有书" : libraryTab === "favorites" ? "这里还没有收藏" : "这里还没有书；导入 EPUB、TXT、Markdown 或 DOCX 后会出现在这里" : librarySearch.trim() ? "试试其他书名或作者，也可以清除搜索。" : activeShelf !== "all" ? "点击书籍的「管理」，选择「加入书架」即可整理书库。" : libraryTab === "favorites" ? "点击书籍的「管理」，选择「加入收藏」，喜欢的书就会出现在这里。" : "导入 EPUB、TXT、Markdown 或 DOCX，开始阅读。书籍与笔记会自动保存在当前浏览器。"} actionLabel={WEB ? librarySearch.trim() ? "清除搜索" : activeShelf === "all" && libraryTab === "all" ? "选择第一本书" : "查看全部书籍" : undefined} onAction={() => { if (librarySearch.trim()) setLibrarySearch(""); else if (activeShelf === "all" && libraryTab === "all") void importBook(); else { setLibraryTab("all"); void updateLibrary({ activeShelfId: "all" }); } }} />}
-                {filteredBooks.map((book) => (
+                {filteredBooks.map((book, memoryIndex) => (
                   <div
                     key={book.id}
+                    style={WEB && settings.yujing?.enabled && settings.yujing.scene === "island" ? { "--memory-tilt": `${(memoryIndex % 5 - 2) * .65}deg`, "--memory-duration": `${8 + memoryIndex % 4}s`, "--memory-delay": `${-memoryIndex * 1.7}s` } as React.CSSProperties : undefined}
                     className={`library-book ${settings.library.favoriteBookIds.includes(book.id) ? "favorite" : ""}`}
                     onContextMenu={(event) => {
                       event.preventDefault();
@@ -2795,9 +2800,10 @@ function App() {
                       setBookMenu({ bookId: book.id, x: event.clientX, y: event.clientY });
                     }}
                   >
-                    <button onClick={() => openBook(book.id)}>
+                    {WEB && settings.yujing?.enabled && settings.yujing.scene === "island" && <><svg className="memory-rope" viewBox="0 0 200 34" preserveAspectRatio="none" aria-hidden="true"><path d="M-2 18 Q100 30 202 18" stroke="currentColor" strokeWidth="2.3" fill="none"/><path d="M-2 17 Q100 29 202 17" stroke="#f4deba" strokeWidth=".5" strokeDasharray="2 3" fill="none"/></svg><span className="memory-peg" aria-hidden="true"/></>}
+                    <button aria-label={`阅读《${book.title}》`} onClick={() => openBook(book.id)}>
                       <span className="cover-frame">
-                        <BookCover book={book} />
+                        <BookCover book={book} art={WEB && settings.yujing?.enabled && settings.yujing.scene === "island"} />
                         {settings.library.favoriteBookIds.includes(book.id) && <span className="favorite-badge" title="已收藏">★</span>}
                       </span>
                       <strong title={book.title}>{book.title}</strong>
@@ -2875,8 +2881,8 @@ function App() {
               </section>
             )}
             {(libraryTab === "all" || libraryTab === "favorites") && <div className="view-switch">
-              <button title="封面视图" aria-label="封面视图" className={settings.library.bookViewMode === "grid" ? "active" : ""} onClick={() => updateLibrary({ bookViewMode: "grid" })}>▦</button>
-              <button title="列表视图" aria-label="列表视图" className={settings.library.bookViewMode === "compact" ? "active" : ""} onClick={() => updateLibrary({ bookViewMode: "compact" })}>☰</button>
+              <button title={bookMemories ? "留影墙" : "封面视图"} aria-label={bookMemories ? "留影墙" : "封面视图"} className={settings.library.bookViewMode === "grid" ? "active" : ""} onClick={() => updateLibrary({ bookViewMode: "grid" })}>▦</button>
+              <button title={bookMemories ? "紧凑留影" : "列表视图"} aria-label={bookMemories ? "紧凑留影" : "列表视图"} className={settings.library.bookViewMode === "compact" ? "active" : ""} onClick={() => updateLibrary({ bookViewMode: "compact" })}>{bookMemories ? "▥" : "☰"}</button>
             </div>}
           </main>
         </>
@@ -3453,6 +3459,13 @@ function ChapterRenderer({
   const page = pages[pageIndex] || pages[0] || { startBlock: 0, endBlock: blocks.length || 1, startOffset: 0, endOffset: 0, textLength: 0 };
   const shownBlocks = blocks.slice(page.startBlock, page.endBlock);
   const isLastPage = pageIndex >= pages.length - 1;
+  useLayoutEffect(() => {
+    const card = contentRef.current?.closest(".reader-content");
+    if (!card?.closest(".yj-enabled") || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    card.removeAttribute("data-yj-page");
+    const frame = requestAnimationFrame(() => card.setAttribute("data-yj-page", String(pageIndex)));
+    return () => cancelAnimationFrame(frame);
+  }, [pageIndex, html]);
   useLayoutEffect(() => {
     if (!WEB_HIGHLIGHTS || !contentRef.current) return;
     const root = contentRef.current;
@@ -4047,7 +4060,8 @@ function AiContextPicker({ value, open, onToggle, onChange }: { value: AiContext
   );
 }
 
-function BookCover({ book }: { book: Book }) {
+function BookCover({ book, art = false }: { book: Book; art?: boolean }) {
+  if (art && !book.coverPath) return <div className="cover-placeholder memory-cover"><span className="memory-cover-mark" aria-hidden="true">{book.title.slice(0, 1)}</span><span className="memory-cover-title">{book.title}</span><span className="memory-cover-author">{book.author || book.fileType.toUpperCase()}</span></div>;
   if (!book.coverPath) return <div className="cover-placeholder">{book.title.slice(0, 1).toUpperCase()}</div>;
   return <img className="book-cover" src={toFileUrl(book.coverPath)} alt={`${book.title} 封面`} />;
 }

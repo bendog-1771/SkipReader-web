@@ -27,13 +27,13 @@ async function run() {
       await window.readerAPI.settings.set({ ...cfg, yujing: { ...cfg.yujing, enabled: true, scene: 'train', planetCount: 48 } });
     }, book);
     await page.reload();
-    await page.waitForFunction(() => window.skipReaderYujingSnapshot?.().models?.island === 'ready');
-    check('Old carriage preference migrates to the Blender book island', (await snapshot()).scene === 'island');
+    await page.waitForFunction(() => window.skipReaderYujingSnapshot?.().models?.island === 'retired');
+    check('Old carriage preference migrates to book memories', (await snapshot()).scene === 'island');
     check('Ambiguous circular home button is removed', await page.locator('.yj-home').count() === 0);
     const entry = await page.locator('.yj-entry').boundingBox();
     const notesEntry = await page.getByRole('button', {name:'我的笔记',exact:true}).boundingBox();
     check('Library entry is directly below My Notes in the left navigation', entry.y >= notesEntry.y + notesEntry.height && entry.x < 250 && entry.height >= 30);
-    check('Book cards and their outer buttons become transparent', await page.locator('.library-book').first().evaluate(el => [el, el.querySelector('button')].every(n => getComputedStyle(n).backgroundColor === 'rgba(0, 0, 0, 0)')));
+    check('Photographs keep a paper border without an opaque outer card', await page.locator('.library-book').first().evaluate(el => getComputedStyle(el).backgroundColor === 'rgba(0, 0, 0, 0)' && getComputedStyle(el.querySelector('button')).backgroundColor !== 'rgba(0, 0, 0, 0)'));
     await page.locator('.book-actions-button').first().click();
     check('Three-dot management still opens the existing book menu', await page.getByRole('button', { name: '重命名', exact: true }).isVisible());
     await page.keyboard.press('Escape');
@@ -45,7 +45,8 @@ async function run() {
     }
     check('Climate panel follows all six reader themes', new Set(themes.map(v => v.background)).size === 6 && themes.every(v => v.color === v.body));
     await page.locator('.yj-panel-title button').click();
-    await page.locator('.library-book').getByText('Short Chinese', { exact: true }).click();
+    const bookPhoto = await page.getByRole('button', { name: '阅读《Short Chinese》', exact: true }).boundingBox();
+    await page.mouse.click(bookPhoto.x + bookPhoto.width / 2, bookPhoto.y + bookPhoto.height / 2);
     await page.locator('.reader-text p').first().waitFor(); await panel();
     await scene('风中的句子'); await page.getByLabel('吹来的文字').selectOption('chapter');
     await page.waitForFunction(() => window.skipReaderYujingSnapshot().quotes.some(q => q.endsWith('风来了。')));
@@ -73,9 +74,9 @@ async function run() {
     await scene('词语星轨'); await page.waitForFunction(() => window.skipReaderYujingSnapshot().planetCount === 48);
     check('All 48 actual vocabulary planets and the original stars render', (await snapshot()).planetCount === 48 && (await snapshot()).stars === 850);
     await scene('海的慢呼吸'); await page.waitForFunction(() => { const state = window.skipReaderYujingSnapshot(); return state.models.ocean === 'ready' && state.triangles > 40000; });
-    check('The displayed sea uses the Blender morph mesh', (await snapshot()).triangles > 40000);
+    check('The displayed sea uses the adaptive Blender mesh', (await snapshot()).triangles > 40000);
     const seen = await page.evaluate(async () => {
-      const ids = ['风中的句子', '云上书岛', '词语星轨', '海的慢呼吸'], failures = [];
+      const ids = ['风中的句子', '书页留影', '词语星轨', '海的慢呼吸'], failures = [];
       for (let i = 0; i < 32; i++) {
         [...document.querySelectorAll('.yj-scene-picks button')].find(b => b.textContent === ids[i % 4]).click();
         await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
@@ -94,8 +95,8 @@ async function run() {
     for (let i = 0; i < 4; i++) {
       await panel(); await page.locator('.yj-off').click();
       assert.equal(await page.locator('.yj-scene canvas').count(), 0);
-      await panel(); await scene('云上书岛'); await page.waitForFunction(() => window.skipReaderYujingSnapshot().models.island === 'ready');
-      assert.equal(await page.locator('.yj-scene canvas').count(), 2);
+      await panel(); await scene('书页留影'); await page.waitForFunction(() => window.skipReaderYujingSnapshot()?.models?.island === 'retired');
+      assert.equal(await page.locator('.yj-scene canvas').count(), 1);
     }
     check('Repeated disable and enable removes old canvases and safely reloads models', true);
     await scene('词语星轨'); await page.getByRole('button', { name: '进入词语星轨 · 快速刷词', exact: true }).click();

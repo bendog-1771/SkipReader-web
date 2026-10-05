@@ -1,4 +1,26 @@
 import * as T from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import bottlesURL from '../../../assets/yuejing/refined/sea-bottles.glb';
+export function loadRefinedBottles(e){
+ e.models.bottles='loading';new GLTFLoader().load(new URL(bottlesURL,import.meta.url).href,gltf=>{
+  if(e.disposed){gltf.scene.traverse(o=>{o.geometry?.dispose();o.material?.dispose();});return;}
+  const names=['BottleSlender','BottleRound','BottleFlask'];
+  names.forEach((name,i)=>{const asset=gltf.scene.getObjectByName(name),b=e.bottles.children[i];if(!asset)return;
+   for(const child of [...b.children]){child.traverse(o=>{o.geometry?.dispose();o.material?.dispose();});b.remove(child);}
+   asset.removeFromParent();asset.position.set(0,0,0);asset.traverse(o=>{if(!o.isMesh)return;const m=o.material;m.envMap=e.bottleEnvironment?.texture;m.envMapIntensity=1.15;
+    if(o.name.startsWith('Glass')){o.material=new T.MeshPhysicalMaterial({color:m.color,roughness:.12,metalness:0,transmission:.83,thickness:.045,ior:1.46,attenuationDistance:2.4,attenuationColor:m.color,envMap:e.bottleEnvironment?.texture,envMapIntensity:1.15,clearcoat:.18,transparent:true,opacity:1,side:T.DoubleSide,depthWrite:false});m.dispose();}
+    else if(o.name.startsWith('RolledPaper')){m.side=T.DoubleSide;m.roughness=.9;}
+   });b.add(asset);
+  });e.models.bottles='ready';e.dirty=true;
+ },undefined,()=>{if(!e.disposed)e.models.bottles='fallback';});
+}
+export function updateBottleEnvironment(e){
+ const p=e.palette,key=[p.top,p.horizon,p.water,p.sun].join('|');if(e.bottleEnvKey===key)return;e.bottleEnvKey=key;
+ const c=document.createElement('canvas');c.width=512;c.height=256;const x=c.getContext('2d'),g=x.createLinearGradient(0,0,0,256);g.addColorStop(0,p.top);g.addColorStop(.46,p.horizon);g.addColorStop(.54,p.sun);g.addColorStop(.65,p.water);g.addColorStop(1,p.water);x.fillStyle=g;x.fillRect(0,0,512,256);
+ for(const [left,width] of [[60,25],[220,13],[390,36]]){const glow=x.createLinearGradient(left,0,left+width,0);glow.addColorStop(0,'#ffffff00');glow.addColorStop(.5,p.sun+'aa');glow.addColorStop(1,'#ffffff00');x.fillStyle=glow;x.fillRect(left,25,width,130);}
+ const texture=new T.CanvasTexture(c);texture.mapping=T.EquirectangularReflectionMapping;texture.colorSpace=T.SRGBColorSpace;const pmrem=new T.PMREMGenerator(e.renderer);pmrem.compileEquirectangularShader();const target=pmrem.fromEquirectangular(texture);texture.dispose();pmrem.dispose();
+ e.bottleEnvironment?.dispose();e.bottleEnvironment=target;e.bottles.traverse(o=>{if(o.material){o.material.envMap=target.texture;o.material.envMapIntensity=1.15;o.material.needsUpdate=true;}});
+}
 export function buildBottles(){
  const group=new T.Group(),styles=['slender','round','flask'];
  for(let i=0;i<3;i++){
@@ -13,16 +35,16 @@ export function buildBottles(){
  }return group;
 }
 export function waveHeight(x,z,time,energy){
- let h=0;for(const [dx,dz,length,amp] of [[.8,.6,48,.42],[-.35,1,23,.22],[.95,-.31,13,.09]]){const norm=Math.hypot(dx,dz),k=Math.PI*2/length;h+=amp*(1+energy*.85)*Math.sin(k*(dx*x+dz*z)/norm-Math.sqrt(9.81*k)*time);}return h;
+ let h=0;for(const [dx,dz,length,amp] of [[.8,.6,48,.30],[-.35,1,23,.16],[.95,-.31,13,.07],[.23,.97,8.7,.033]]){const norm=Math.hypot(dx,dz),k=Math.PI*2/length;h+=amp*(1+energy*.65)*Math.sin(k*(dx*x+dz*z)/norm-Math.sqrt(9.81*k)*time);}return h;
 }
 export function animateBottles(e,t){
  if(!e.bottles)return;const count=e.width<760?2:3;
  const mobile=count===2,departing=e.bottles.children.findIndex(b=>t-(b.userData.castAt??-1000)>=0&&t-(b.userData.castAt??-1000)<7);
- e.bottles.visible=e.settings.scene==='ocean'&&e.settings.bottlesEnabled!==false;
+ e.bottles.visible=e.settings.scene==='ocean'&&!e.settings.reading&&e.settings.bottlesEnabled!==false&&['ready','fallback'].includes(e.models.bottles);
  e.bottles.children.forEach((b,i)=>{
   b.visible=mobile&&departing===2?i!==1:i<count;const age=t-(b.userData.castAt??-1000),departure=age>=0&&age<7?age/7:0;
   const x=(mobile?[-2.4,2.1,.4]:[-7.8,5.6,1.8])[i]+Math.sin(t*.09+i*2)*(mobile?.22:.7),z=[-5,1,-17][i]-departure*18;
-  b.position.set(x,waveHeight(x,z,t,e.seaResponse)-.28,z);b.rotation.set(.12*Math.sin(t*.5+i),t*.06+i,.20+.12*Math.sin(t*.7+i));
-  b.scale.setScalar(.65*(1-departure*.8));if(i===2)b.scale.z*=.58;
+  b.position.set(x,waveHeight(x,z,t,e.seaResponse)-.08,z);b.rotation.set(.10*Math.sin(t*.5+i),t*.035+i,.94+.09*Math.sin(t*.7+i));
+  b.scale.setScalar(.78*(1-departure*.8));
  });
 }
