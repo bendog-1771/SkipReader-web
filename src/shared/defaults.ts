@@ -1,6 +1,6 @@
 import type { AppSettings, YujingSettings } from "./types";
 
-export const DEFAULT_YUJING: YujingSettings = { enabled: false, scene: "ocean", mood: "day", speed: .7, intensity: .85, paused: false, blend: "art", source: "highlights", manualQuotes: [], soundStrength: 1.8, readerOpacity: .78, planetCount: 24, matchTheme: true };
+export const DEFAULT_YUJING: YujingSettings = { enabled: false, scene: "ocean", mood: "day", speed: .7, intensity: .85, paused: false, blend: "art", source: "highlights", manualQuotes: [], soundStrength: 1.8, readerOpacity: .78, planetCount: 24, matchTheme: true, chromeOpacity: .34, bottlesEnabled: true };
 
 export const DEFAULT_SETTINGS: AppSettings = {
   yujing: DEFAULT_YUJING,

@@ -5,9 +5,10 @@ import { cleanBookHtml, importWebBook } from "./importer";
 import { Protection } from "./protection";
 import { applyDocument } from "./sync-model";
 import type { Data } from "./data";
+import { createSeaLetterAPI, validSeaLetter } from "./sea-letters";
 
 export type { Data } from "./data";
-const fresh = (): Data => ({ settings: { ...structuredClone(DEFAULT_SETTINGS), tts: { ...DEFAULT_SETTINGS.tts, autoScroll: true } }, books: [], chapters: [], tocItems: [], positions: [], chapterPositions: [], bookmarks: [], notebooks: [], vocab: [], notes: [] });
+const fresh = (): Data => ({ settings: { ...structuredClone(DEFAULT_SETTINGS), tts: { ...DEFAULT_SETTINGS.tts, autoScroll: true } }, books: [], chapters: [], tocItems: [], positions: [], chapterPositions: [], bookmarks: [], notebooks: [], vocab: [], notes: [], seaLetters: [] });
 let db: IDBDatabase;
 let data = fresh();
 let queue: Promise<unknown> = Promise.resolve();
@@ -34,6 +35,8 @@ export function browserSettings(input: Partial<AppSettings> = {}): AppSettings {
   for (const [key, low, high, fallback] of [["speed",0,1.5,.7],["intensity",.1,1,.85],["soundStrength",.5,3,1.8],["readerOpacity",0,1,.78],["planetCount",8,48,24]] as const) art[key] = Number.isFinite(art[key]) ? Math.max(low,Math.min(high,art[key])) : fallback;
   art.paused = art.paused === true;
   art.matchTheme = art.matchTheme !== false;
+  art.chromeOpacity = Number.isFinite(art.chromeOpacity) ? Math.max(0, Math.min(1, art.chromeOpacity!)) : .34;
+  art.bottlesEnabled = art.bottlesEnabled !== false;
   settings.yujing = art;
   if (!settings.dictionary.enabled) Object.assign(settings.dictionary, { hover: false, click: false, doubleClick: false, selection: false });
   settings.dictionary.source = "bing";
@@ -134,13 +137,14 @@ async function importBackup() {
   if (!backup || !["eRead-web-backup", "eRead-backup"].includes(backup.schema) || ![1, 2].includes(backup.version)) throw new Error("请选择有效的 eRead 备份文件");
   const desktop = backup.schema === "eRead-backup";
   const next = fresh(), html: Record<string, string> = {};
-  const sources: Record<Exclude<keyof Data, "settings">, string> = { books: "books", chapters: "chapters", tocItems: "tocItems", positions: desktop ? "readingPositions" : "positions", chapterPositions: desktop ? "readingChapterPositions" : "chapterPositions", bookmarks: "bookmarks", notebooks: "notebooks", vocab: desktop ? "vocabItems" : "vocab", notes: "notes" };
+  const sources: Record<Exclude<keyof Data, "settings">, string> = { books: "books", chapters: "chapters", tocItems: "tocItems", positions: desktop ? "readingPositions" : "positions", chapterPositions: desktop ? "readingChapterPositions" : "chapterPositions", bookmarks: "bookmarks", notebooks: "notebooks", vocab: desktop ? "vocabItems" : "vocab", notes: "notes", seaLetters: "seaLetters" };
   for (const [key, source] of Object.entries(sources)) {
     const values = backup[source] ?? [];
     if (!Array.isArray(values) || values.some(v => !v || typeof v !== "object")) throw new Error(`备份中的 ${source} 格式无效`);
     (next as any)[key] = values.map(row);
   }
   next.settings = browserSettings(backup.settings);
+  if (next.seaLetters?.some(l => !validSeaLetter(l)) || new Set(next.seaLetters?.map(l => l.id)).size !== next.seaLetters?.length) throw new Error("备份中的漂流信格式无效");
   for (const book of next.books) {
     if (!book.id || typeof book.title !== "string") throw new Error("备份书籍信息无效");
     const raw = (backup.books as any[]).find(b => b.id === book.id);
@@ -190,6 +194,7 @@ export async function installBrowserAPI() {
   window.skipReaderProtection = protection;
   await protection.initialize();
   window.readerAPI = {
+    seaLetters: createSeaLetterAPI({ refresh, current: () => data, mutate, chapterText: async id => await request(db.transaction("chapterText").objectStore("chapterText").get(id)) || "" }),
     books: {
       import: async () => {
         const file = await pickFile(".epub,.txt,.md,.markdown,.docx"); if (!file) return null;

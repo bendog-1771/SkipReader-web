@@ -1,9 +1,16 @@
 import type { LearningExportFormat } from "./shared/learningExport";
-import type { AppSettings, Bookmark, Book, Chapter, DictionaryResult, ImportResult, Notebook, ReaderNote, ReadingPosition, TocItem, VocabItem } from "./shared/types";
+import type { AppSettings, Bookmark, Book, Chapter, DictionaryResult, ImportResult, Notebook, ReaderNote, ReadingPosition, TocItem, VocabItem, SeaLetter, SeaDelivery, BottleStyle } from "./shared/types";
 
 declare global {
   interface Window {
     readerAPI: {
+      seaLetters: {
+        list(): Promise<SeaLetter[]>;
+        cast(text: string, style: BottleStyle): Promise<SeaLetter>;
+        remove(id: string): Promise<void>;
+        restore(letter: SeaLetter): Promise<void>;
+        receive(source?: "all" | "past" | "highlight" | "book"): Promise<SeaDelivery | null>;
+      };
       books: {
         import(): Promise<ImportResult | null>;
         list(): Promise<Book[]>;

@@ -14,6 +14,27 @@ export interface YujingSettings {
   readerOpacity: number;
   planetCount: number;
   matchTheme: boolean;
+  chromeOpacity?: number;
+  bottlesEnabled?: boolean;
+}
+
+export type BottleStyle = "slender" | "round" | "flask";
+export interface SeaLetter {
+  id: string;
+  text: string;
+  style: BottleStyle;
+  createdAt: string;
+  lastReceivedAt?: string;
+}
+export interface SeaDelivery {
+  id: string;
+  text: string;
+  kind: "past" | "highlight" | "book";
+  createdAt?: string;
+  bookId?: string;
+  chapterId?: string;
+  bookTitle?: string;
+  chapterTitle?: string;
 }
 
 export interface AppSettings {
