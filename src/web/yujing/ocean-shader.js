@@ -36,7 +36,7 @@ void main(){
  vec3 transmitted=mix(deep*.28,deep*.80,exp(-distance*.024));vec3 color=mix(transmitted,refl,fresnel);
  vec3 halfDir=normalize(sun+eye);float NoH=max(dot(n,halfDir),0.),rough=.065+min(.13,footprint*.02);
  float a=rough*rough,denom=NoH*NoH*(a-1.)+1.,spec=a/(3.14159*denom*denom+.000003);
- color+=glow*min(4.,spec*(.055+energy*.025))*smoothstep(-.01,.12,sun.y);
+ color+=glow*min(2.2,spec*(.028+energy*.018))*smoothstep(-.01,.12,sun.y);
  color=mix(color,horizon,(1.-exp(-distance*.0008))*.32);gl_FragColor=vec4(color,1.);
 #include <tonemapping_fragment>
 #include <colorspace_fragment>

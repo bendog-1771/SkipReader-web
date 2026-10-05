@@ -4248,7 +4248,7 @@ function SettingsPanel({
   );
 }
 
-const APP_VERSION = WEB ? "0.4.0" : "0.3.0";
+const APP_VERSION = WEB ? "0.5.0" : "0.3.0";
 
 const HELP_SECTIONS = [
   {
