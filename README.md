@@ -1,6 +1,6 @@
 # SkipReader · 一跃
 
-免费网页阅读器：[打开网站](https://bendog-1771.github.io/eRead-web/)。原名 eRead Web。名称和图标已更新，网址、浏览器数据库标识和安装 ID 保持兼容，已有书库不需要迁移。
+免费网页阅读器：[打开网站](https://bendog-1771.github.io/SkipReader-web/)。名称和图标已更新，网址、浏览器数据库标识和安装 ID 保持兼容，已有书库不需要迁移。
 
 正文使用主页面普通 DOM，可结合第三方浏览器插件辅助学习。支持 EPUB、TXT、Markdown、DOCX，笔记、生词、书签、搜索、章节位置、排版和免费浏览器朗读，也可在 Edge / Chrome 安装到桌面。第三方插件在独立窗口中的行为由浏览器和插件决定。
 
