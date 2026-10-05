@@ -13,6 +13,7 @@
     "test:sync": "node scripts/sync-model-regression.cjs && node scripts/sync-worker-regression.mjs",
     "test:dictionary": "node scripts/dictionary-worker-regression.mjs",
     "test:yujing": "node scripts/yujing-regression.cjs && node scripts/yuejing-stability-regression.cjs && node scripts/yuejing-refinement-regression.cjs",
+    "test:experience": "node scripts/yuejing-experience-regression.cjs",
     "test:memories": "node scripts/book-memories-regression.cjs",
     "test:correspondence": "node scripts/yuejing-correspondence-regression.cjs",
     "test:storage": "node scripts/storage-upgrade-regression.cjs",

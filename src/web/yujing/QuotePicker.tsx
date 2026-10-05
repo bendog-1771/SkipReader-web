@@ -1,0 +1,7 @@
+import React, { useMemo, useState } from "react";
+import { AtmosphereOverlay } from "./Overlay";
+export function QuotePicker({quotes,selectedText,start,close}:{quotes:string[];selectedText:string;start:(quotes:string[])=>void;close:()=>void}){
+ const [search,setSearch]=useState(''),[draft,setDraft]=useState(selectedText),[chosen,setChosen]=useState<string[]>([]);
+ const candidates=useMemo(()=>Array.from(new Set(quotes)).filter(q=>q.toLocaleLowerCase().includes(search.toLocaleLowerCase())),[quotes,search]);
+ return <AtmosphereOverlay title="临时选句" close={close} className="yj-quote-sheet"><p className="yj-sheet-help">只在这次打开应用时使用，不保存成划线，也不覆盖原来的摘录。长句会按标点分段、自动换行。</p><label>临时写一句或粘贴片段<textarea aria-label="临时片段" value={draft} onChange={e=>setDraft(e.target.value)} rows={3} maxLength={2000}/></label><input type="search" aria-label="查找可选句子" placeholder="在当前文字来源里找一句…" value={search} onChange={e=>setSearch(e.target.value)}/><div className="yj-quote-list">{candidates.slice(0,40).map((q,i)=><label key={i}><input type="checkbox" checked={chosen.includes(q)} onChange={e=>setChosen(v=>e.target.checked?[...v,q]:v.filter(s=>s!==q))}/><span>{q}</span></label>)}{!candidates.length&&<p className="yj-sheet-help">暂无可选内容。可以直接在上方粘贴片段。</p>}</div><footer><span>{chosen.length} 条已选 · 临时使用</span><button className="yj-sheet-primary" disabled={!draft.trim()&&!chosen.length} onClick={()=>start(Array.from(new Set([...chosen,...(draft.trim()?[draft.trim()]:[])])))}>让这些句子入风</button></footer></AtmosphereOverlay>;
+}

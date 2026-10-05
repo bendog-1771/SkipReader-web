@@ -31,12 +31,14 @@ export function browserSettings(input: Partial<AppSettings> = {}): AppSettings {
   if (!["dawn", "day", "dusk", "night"].includes(art.mood)) art.mood = "day";
   if (!["highlights", "chapter", "manual"].includes(art.source)) art.source = "highlights";
   art.blend = art.blend === "mix" ? "mix" : "art";
-  art.manualQuotes = Array.isArray(art.manualQuotes) ? art.manualQuotes.filter(q => typeof q === "string").slice(0,24).map(q => q.slice(0,500)) : [];
+  art.manualQuotes = Array.isArray(art.manualQuotes) ? art.manualQuotes.filter(q => typeof q === "string").slice(0,24).map(q => q.slice(0,2000)) : [];
   for (const [key, low, high, fallback] of [["speed",0,1.5,.7],["intensity",.1,1,.85],["soundStrength",.5,3,1.8],["readerOpacity",0,1,.78],["planetCount",8,48,24]] as const) art[key] = Number.isFinite(art[key]) ? Math.max(low,Math.min(high,art[key])) : fallback;
   art.paused = art.paused === true;
   art.matchTheme = art.matchTheme !== false;
   art.chromeOpacity = Number.isFinite(art.chromeOpacity) ? Math.max(0, Math.min(1, art.chromeOpacity!)) : .34;
   art.bottlesEnabled = art.bottlesEnabled !== false;
+  art.quality = ["auto", "battery", "high"].includes(art.quality || "") ? art.quality : "auto";
+  art.weather = ["clear", "clouds", "radiant"].includes(art.weather || "") ? art.weather : "radiant";
   settings.yujing = art;
   if (!settings.dictionary.enabled) Object.assign(settings.dictionary, { hover: false, click: false, doubleClick: false, selection: false });
   settings.dictionary.source = "bing";

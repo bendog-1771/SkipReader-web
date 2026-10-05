@@ -1,7 +1,7 @@
 import type { YujingSettings, ThemeName, BottleStyle } from "../../shared/types";
 export class SceneEngine {
  constructor(host: HTMLElement, onPick?: (index: number) => void, onFailure?: () => void);
- configure(settings: YujingSettings & { reading?: boolean; game?: boolean; theme?: ThemeName }): void;
+ configure(settings: YujingSettings & { reading?: boolean; game?: boolean; focusedGame?: boolean; theme?: ThemeName }): void;
  quotes: string[];
  setWords(words: string[], lit?: Set<number>): void;
  energy: { bass: number; mid: number; high: number; level: number };

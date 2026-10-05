@@ -16,6 +16,8 @@ export interface YujingSettings {
   matchTheme: boolean;
   chromeOpacity?: number;
   bottlesEnabled?: boolean;
+  quality?: "auto" | "battery" | "high";
+  weather?: "clear" | "clouds" | "radiant";
 }
 
 export type BottleStyle = "slender" | "round" | "flask";

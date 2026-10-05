@@ -18,7 +18,7 @@ void main(){
  wp=p;wn=normalize(cross(binormal,tangent));gl_Position=projectionMatrix*viewMatrix*vec4(p,1.);
 }`;
 export const oceanFragment=`
-varying vec3 wp,wn;uniform float time,energy;uniform vec3 top,horizon,glow,sun,deep;${atmosphereGLSL}
+varying vec3 wp,wn;uniform float time,energy,weather,night,detail;uniform vec3 top,horizon,glow,sun,deep;${atmosphereGLSL}
 float ripples(vec2 p){return noise(p)*.62+noise(p*2.17+7.31)*.26+noise(p*4.13-13.7)*.12;}
 vec2 irregularSlope(vec2 p,float scale,float speed,float amplitude,float footprint){
  float fade=1.-smoothstep(.4/scale,1.9/scale,footprint);vec2 uv=p*scale+vec2(time*speed,-time*speed*.63);
@@ -27,7 +27,8 @@ vec2 irregularSlope(vec2 p,float scale,float speed,float amplitude,float footpri
  return vec2(dx,dz)*amplitude*fade/.14;
 }
 void main(){
- float footprint=length(fwidth(wp.xz));vec2 gradients=irregularSlope(wp.xz,.32,.23,.075,footprint)+irregularSlope(wp.xz,1.45,.39,.026,footprint);
+ float footprint=length(fwidth(wp.xz));vec2 gradients=irregularSlope(wp.xz,.32,.23,.075,footprint);
+ if(detail>.5)gradients+=irregularSlope(wp.xz,1.45,.39,.026,footprint);
  gradients*=1.+energy*.55;
  vec3 n=normalize(wn+vec3(-gradients.x,0.,-gradients.y));vec3 eye=normalize(cameraPosition-wp);
  float NoV=max(dot(n,eye),.001),fresnel=.02+.98*pow(1.-NoV,5.);

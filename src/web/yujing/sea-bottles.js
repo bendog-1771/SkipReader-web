@@ -1,6 +1,6 @@
 import * as T from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import bottlesURL from '../../../assets/yuejing/refined/sea-bottles.glb';
+import bottlesURL from '../../../assets/yuejing/clear/sea-bottles.glb';
 export function loadRefinedBottles(e){
  e.models.bottles='loading';new GLTFLoader().load(new URL(bottlesURL,import.meta.url).href,gltf=>{
   if(e.disposed){gltf.scene.traverse(o=>{o.geometry?.dispose();o.material?.dispose();});return;}
@@ -8,7 +8,7 @@ export function loadRefinedBottles(e){
   names.forEach((name,i)=>{const asset=gltf.scene.getObjectByName(name),b=e.bottles.children[i];if(!asset)return;
    for(const child of [...b.children]){child.traverse(o=>{o.geometry?.dispose();o.material?.dispose();});b.remove(child);}
    asset.removeFromParent();asset.position.set(0,0,0);asset.traverse(o=>{if(!o.isMesh)return;const m=o.material;m.envMap=e.bottleEnvironment?.texture;m.envMapIntensity=1.15;
-    if(o.name.startsWith('Glass')){o.material=new T.MeshPhysicalMaterial({color:m.color,roughness:.12,metalness:0,transmission:.83,thickness:.045,ior:1.46,attenuationDistance:2.4,attenuationColor:m.color,envMap:e.bottleEnvironment?.texture,envMapIntensity:1.15,clearcoat:.18,transparent:true,opacity:1,side:T.DoubleSide,depthWrite:false});m.dispose();}
+    if(o.name.startsWith('Glass')){o.material=new T.MeshPhysicalMaterial({color:0xffffff,roughness:.035,metalness:0,transmission:e.budget?.tier===0?0:.97,thickness:.018,ior:1.45,attenuationDistance:40,attenuationColor:0xffffff,envMap:e.bottleEnvironment?.texture,envMapIntensity:1.15,clearcoat:0,transparent:true,opacity:e.budget?.tier===0?.27:1,side:T.FrontSide,depthWrite:false});m.dispose();}
     else if(o.name.startsWith('RolledPaper')){m.side=T.DoubleSide;m.roughness=.9;}
    });b.add(asset);
   });e.models.bottles='ready';e.dirty=true;
@@ -16,8 +16,9 @@ export function loadRefinedBottles(e){
 }
 export function updateBottleEnvironment(e){
  const p=e.palette,key=[p.top,p.horizon,p.water,p.sun].join('|');if(e.bottleEnvKey===key)return;e.bottleEnvKey=key;
- const c=document.createElement('canvas');c.width=512;c.height=256;const x=c.getContext('2d'),g=x.createLinearGradient(0,0,0,256);g.addColorStop(0,p.top);g.addColorStop(.46,p.horizon);g.addColorStop(.54,p.sun);g.addColorStop(.65,p.water);g.addColorStop(1,p.water);x.fillStyle=g;x.fillRect(0,0,512,256);
- for(const [left,width] of [[60,25],[220,13],[390,36]]){const glow=x.createLinearGradient(left,0,left+width,0);glow.addColorStop(0,'#ffffff00');glow.addColorStop(.5,p.sun+'aa');glow.addColorStop(1,'#ffffff00');x.fillStyle=glow;x.fillRect(left,25,width,130);}
+ const c=document.createElement('canvas');c.width=512;c.height=256;const x=c.getContext('2d'),g=x.createLinearGradient(0,0,0,256);g.addColorStop(0,p.top);g.addColorStop(.46,p.horizon);g.addColorStop(.54,p.horizon);g.addColorStop(.65,p.water);g.addColorStop(1,p.water);x.fillStyle=g;x.fillRect(0,0,512,256);
+ const halo=x.createRadialGradient(210,118,1,210,118,45);halo.addColorStop(0,p.sun);halo.addColorStop(.08,p.sun+'ee');halo.addColorStop(.4,p.sun+'44');halo.addColorStop(1,p.sun+'00');x.fillStyle=halo;x.fillRect(160,70,100,100);
+ for(let i=0;i<10;i++){x.globalAlpha=.035;x.fillStyle=p.horizon;x.beginPath();x.ellipse((i*73)%512,55+(i%3)*18,55,6,0,0,Math.PI*2);x.fill();}x.globalAlpha=1;
  const texture=new T.CanvasTexture(c);texture.mapping=T.EquirectangularReflectionMapping;texture.colorSpace=T.SRGBColorSpace;const pmrem=new T.PMREMGenerator(e.renderer);pmrem.compileEquirectangularShader();const target=pmrem.fromEquirectangular(texture);texture.dispose();pmrem.dispose();
  e.bottleEnvironment?.dispose();e.bottleEnvironment=target;e.bottles.traverse(o=>{if(o.material){o.material.envMap=target.texture;o.material.envMapIntensity=1.15;o.material.needsUpdate=true;}});
 }
@@ -26,7 +27,7 @@ export function buildBottles(){
  for(let i=0;i<3;i++){
   const b=new T.Group();b.userData.style=styles[i];b.userData.index=i;
   const shape=i===1?[[0,0],[.28,0],[.43,.18],[.5,.45],[.46,.7],[.23,.88],[.13,.96],[.13,1.28],[.17,1.28]]:i===2?[[0,0],[.33,0],[.37,.1],[.4,.68],[.29,.83],[.12,.95],[.12,1.28],[.16,1.28]]:[[0,0],[.25,0],[.31,.08],[.31,.72],[.22,.86],[.10,.98],[.10,1.42],[.14,1.42]];
-  const glass=new T.Mesh(new T.LatheGeometry(shape.map(([x,y])=>new T.Vector2(x,y)),32),new T.MeshPhysicalMaterial({color:['#92c8b8','#90bcd0','#bdab83'][i],metalness:.08,roughness:.13,transparent:true,opacity:.46,clearcoat:1,clearcoatRoughness:.12,side:T.DoubleSide,depthWrite:false}));glass.userData.glass=true;b.add(glass);
+  const glass=new T.Mesh(new T.LatheGeometry(shape.map(([x,y])=>new T.Vector2(x,y)),32),new T.MeshPhysicalMaterial({color:0xffffff,metalness:0,roughness:.035,transparent:true,opacity:.25,clearcoat:0,clearcoatRoughness:.12,side:T.DoubleSide,depthWrite:false}));glass.userData.glass=true;b.add(glass);
   const cork=new T.Mesh(new T.CylinderGeometry(i===0?.115:.145,i===0?.10:.13,.16,16),new T.MeshStandardMaterial({color:0x8d6f47,roughness:.95}));cork.position.y=i===0?1.43:1.29;b.add(cork);
   const paper=new T.Mesh(new T.CylinderGeometry(.11,.11,.60,12),new T.MeshStandardMaterial({color:0xeee3cc,roughness:.8}));paper.position.y=.48;paper.rotation.z=-.18+i*.12;b.add(paper);
   const ribbon=new T.Mesh(new T.TorusGeometry(.11,.018,6,16),new T.MeshStandardMaterial({color:0x89734c,roughness:.7}));ribbon.position.copy(paper.position);ribbon.rotation.x=Math.PI/2;b.add(ribbon);
