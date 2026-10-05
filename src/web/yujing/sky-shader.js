@@ -11,7 +11,7 @@ float photoTransmission(vec3 photo){
  return mix(1.,weather>.5&&weather<1.5?.18:.46,cloudCover);
 }
 vec3 celestial(vec3 d,vec3 glow,vec3 sun,float transmission){
- float s=dot(d,sun),lowSun=1.-smoothstep(.04,.28,sun.y),radius=night>.5?.009:mix(.0105,.0127,lowSun);
+ float s=dot(d,sun),lowSun=1.-smoothstep(.04,.28,sun.y),radius=night>.5?.014:mix(.0105,.0127,lowSun);
  float rim=cos(radius),aa=max(fwidth(s)*.65,.000004);
  float disc=smoothstep(rim-aa,rim+aa,s);
  float angle=sqrt(max(0.,2.*(1.-s)));

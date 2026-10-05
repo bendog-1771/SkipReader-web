@@ -1,6 +1,6 @@
 {
   "name": "skipreader-web",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "private": true,
   "description": "SkipReader · 一跃 — free web reader with local backups and encrypted optional learning sync",
   "engines": {

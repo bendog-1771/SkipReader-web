@@ -2703,7 +2703,7 @@ function App() {
       {viewMode === "library" ? (
         <>
           <aside className={`library-sidebar ${libraryNavigationOpen ? "mobile-expanded" : ""}`}>
-            <div className="brand">{WEB ? <img className="brand-icon" src="./icon.svg" alt="" /> : <span>e</span>}<div><strong>{WEB ? "SkipReader" : "eRead"}</strong><small>{WEB ? "一跃 · 让阅读向前一步" : "Read English with ease"}</small></div></div>
+            <div className="brand">{WEB ? <img className="brand-icon" src="./icon.svg" alt="" /> : <span>e</span>}<div><strong>SkipReader</strong><small>{WEB ? "一跃 · 让阅读向前一步" : "Read English with ease"}</small></div></div>
             <nav className="library-nav" aria-label="书库分区">
               <button aria-label="全部书籍" aria-current={libraryTab === "all" ? "page" : undefined} className={libraryTab === "all" ? "active" : ""} onClick={() => { if (WEB && libraryTab !== "all") setLibrarySearch(""); setLibraryTab("all"); updateLibrary({ activeShelfId: "all" }); }}><span aria-hidden="true"><LibraryIcon kind="books" /></span><b>全部书籍</b></button>
               <button aria-label="我的收藏" aria-current={libraryTab === "favorites" ? "page" : undefined} className={libraryTab === "favorites" ? "active" : ""} onClick={() => { if (WEB && libraryTab !== "favorites") setLibrarySearch(""); setLibraryTab("favorites"); updateLibrary({ activeShelfId: "all" }); }}><span aria-hidden="true"><LibraryIcon kind="favorite" /></span><b>我的收藏</b></button>
@@ -4236,7 +4236,7 @@ function SettingsPanel({
       </>}
       {show("backup") && <>
         <h3>备份与日志</h3>
-        {WEB && <><p className="muted-note">书籍保存在当前浏览器。完整备份包含书籍和学习记录；登录恢复卡用于连接云账号，两者请分别保存。也支持导入旧版 eRead 的完整备份。</p><ProtectionPanel /></>}
+        {WEB && <><p className="muted-note">书籍保存在当前浏览器。完整备份包含书籍和学习记录；登录恢复卡用于连接云账号，两者请分别保存。也支持导入旧版应用的完整备份。</p><ProtectionPanel /></>}
         <div className="inline-row"><button onClick={() => window.readerAPI.backup.export()}>导出备份</button><button onClick={onImportBackup || (() => window.readerAPI.backup.import())}>导入备份</button><button onClick={() => window.readerAPI.logs.export()}>导出日志</button></div>
       </>}
       <div className="settings-footer-actions">
@@ -4248,13 +4248,13 @@ function SettingsPanel({
   );
 }
 
-const APP_VERSION = WEB ? "0.5.0" : "0.3.0";
+const APP_VERSION = WEB ? "0.5.1" : "0.3.0";
 
 const HELP_SECTIONS = [
   {
     title: "开始使用",
     paragraphs: [
-      "eRead 是一款面向英语阅读与学习的本地桌面阅读器，支持导入 EPUB、TXT、Markdown 和 DOCX 文件；你可以在书库中管理书籍，在阅读时进行查词、翻译、划线、写想法、收藏生词、添加书签、朗读和 AI 辅助提问",
+      "SkipReader 是一款面向英语阅读与学习的本地桌面阅读器，支持导入 EPUB、TXT、Markdown 和 DOCX 文件；你可以在书库中管理书籍，在阅读时进行查词、翻译、划线、写想法、收藏生词、添加书签、朗读和 AI 辅助提问",
       "首次使用时，点击主界面右上方的“导入书籍”，选择本机文件；导入完成后，书籍会出现在书库中；点击书籍封面或标题即可打开阅读"
     ]
   },
@@ -4262,7 +4262,7 @@ const HELP_SECTIONS = [
     title: "书库管理",
     paragraphs: [
       "书库支持全部书籍、收藏、生词和笔记几个入口",
-      "你可以右键书籍进行收藏、加入书架、顶置、重命名、导出封面、导出笔记或删除书籍；删除书籍只会从书库移除书籍本身，相关生词、笔记和书签会保留；之后重新导入同一本书时，eRead 会询问是否把旧内容关联到新书；确认后，原来的生词、笔记和书签会尽量恢复跳转能力",
+      "你可以右键书籍进行收藏、加入书架、顶置、重命名、导出封面、导出笔记或删除书籍；删除书籍只会从书库移除书籍本身，相关生词、笔记和书签会保留；之后重新导入同一本书时，SkipReader 会询问是否把旧内容关联到新书；确认后，原来的生词、笔记和书签会尽量恢复跳转能力",
       "书架用于整理书籍；你可以新建书架，将书籍加入不同书架，也可以重命名或删除书架；删除书架不会删除书籍"
     ]
   },
@@ -4277,7 +4277,7 @@ const HELP_SECTIONS = [
   {
     title: "阅读进度",
     paragraphs: [
-      "eRead 会自动保存阅读位置；普通滚动和翻页会延迟保存，以避免频繁写入；切换章节、退出阅读器、关闭窗口、系统锁屏或应用进入后台时，会立即保存当前位置",
+      "SkipReader 会自动保存阅读位置；普通滚动和翻页会延迟保存，以避免频繁写入；切换章节、退出阅读器、关闭窗口、系统锁屏或应用进入后台时，会立即保存当前位置",
       "阅读位置会优先使用正文字符位置定位，其次使用段落和滚动位置辅助恢复；这样即使窗口大小、字体、页边距或分页发生变化，也能尽量回到接近上次阅读的位置",
       "建议及时添加书签，保证阅读进度得到良好保存"
     ]
@@ -4328,8 +4328,8 @@ const HELP_SECTIONS = [
   {
     title: "备份与恢复",
     paragraphs: [
-      "eRead 的书籍记录、阅读进度、生词、笔记、书签和设置默认保存在本机应用数据目录；建议在版本升级、迁移电脑或批量整理数据前，先在“备份与日志”中导出备份",
-      "导入备份前，eRead 会尝试生成安全快照；即便如此，仍建议你保留重要书籍文件和备份文件的独立副本"
+      "SkipReader 的书籍记录、阅读进度、生词、笔记、书签和设置默认保存在本机应用数据目录；建议在版本升级、迁移电脑或批量整理数据前，先在“备份与日志”中导出备份",
+      "导入备份前，SkipReader 会尝试生成安全快照；即便如此，仍建议你保留重要书籍文件和备份文件的独立副本"
     ]
   },
   {
@@ -4344,9 +4344,9 @@ const HELP_SECTIONS = [
 
 const ABOUT_SECTIONS = [
   {
-    title: "eRead",
+    title: "SkipReader",
     paragraphs: [
-      "eRead 是一款面向英语阅读学习的本地桌面阅读器，提供书籍阅读、查词、翻译、生词本、划线笔记、书签、朗读和 AI 辅助等功能",
+      "SkipReader 是一款面向英语阅读学习的本地桌面阅读器，提供书籍阅读、查词、翻译、生词本、划线笔记、书签、朗读和 AI 辅助等功能",
       `当前版本：v${APP_VERSION}`,
       "开发者：Bendog",
       "目前适用平台：Windows"
@@ -4355,7 +4355,7 @@ const ABOUT_SECTIONS = [
   {
     title: "本地数据",
     paragraphs: [
-      "eRead 默认将书籍记录、阅读进度、生词、笔记、书签、设置和日志保存在本机；除非你主动使用在线词典、在线翻译、AI 或其他联网功能，eRead 不会主动上传你的书籍文件或学习数据",
+      "SkipReader 默认将书籍记录、阅读进度、生词、笔记、书签、设置和日志保存在本机；除非你主动使用在线词典、在线翻译、AI 或其他联网功能，SkipReader 不会主动上传你的书籍文件或学习数据",
       "请注意，本地数据仍可能因系统故障、磁盘损坏、误删、软件异常或版本迁移失败而丢失；请定期导出备份，并自行保存重要书籍和学习资料的副本"
     ]
   },
@@ -4369,7 +4369,7 @@ const ABOUT_SECTIONS = [
   {
     title: "AI 与词典结果",
     paragraphs: [
-      "eRead 中的词典、翻译、朗读和 AI 输出仅用于阅读辅助和语言学习参考；相关结果可能存在错误、遗漏、延迟、偏差或不适用于具体语境的情况",
+      "SkipReader 中的词典、翻译、朗读和 AI 输出仅用于阅读辅助和语言学习参考；相关结果可能存在错误、遗漏、延迟、偏差或不适用于具体语境的情况",
       "AI 输出不构成法律、医疗、心理、投资、财务、学术评价或其他专业建议；你应自行判断和核实重要内容，并在必要时咨询具备资质的专业人士"
     ]
   },
@@ -4377,25 +4377,25 @@ const ABOUT_SECTIONS = [
     title: "版权与内容责任",
     paragraphs: [
       "你应确保自己导入、阅读、摘录、导出或分享的书籍、文本、笔记和其他内容来源合法，并遵守适用的著作权、出版、网络传播和数据合规要求",
-      "eRead 仅提供本地阅读和学习管理工具，不提供盗版书籍下载、破解、传播或版权规避功能；因用户导入、复制、导出、传播或使用第三方内容而产生的版权争议或法律责任，由用户自行承担"
+      "SkipReader 仅提供本地阅读和学习管理工具，不提供盗版书籍下载、破解、传播或版权规避功能；因用户导入、复制、导出、传播或使用第三方内容而产生的版权争议或法律责任，由用户自行承担"
     ]
   },
   {
     title: "免责声明",
     paragraphs: [
-      "在法律允许的范围内，eRead 按“现状”提供，不承诺完全无错误、不中断、始终兼容所有文件格式，或满足所有特定用途；由于软件使用、数据丢失、第三方服务异常、网络问题、用户操作、系统环境或内容来源问题造成的损失，开发者不承担超出适用法律强制规定范围的责任"
+      "在法律允许的范围内，SkipReader 按“现状”提供，不承诺完全无错误、不中断、始终兼容所有文件格式，或满足所有特定用途；由于软件使用、数据丢失、第三方服务异常、网络问题、用户操作、系统环境或内容来源问题造成的损失，开发者不承担超出适用法律强制规定范围的责任"
     ]
   },
   {
     title: "隐私与安全建议",
     paragraphs: [
-      "建议你定期备份数据，谨慎配置第三方 API Key，不在共享电脑上保存敏感内容；若你计划向他人分发 eRead，请一并提供本说明，并提醒使用者阅读后再使用"
+      "建议你定期备份数据，谨慎配置第三方 API Key，不在共享电脑上保存敏感内容；若你计划向他人分发 SkipReader，请一并提供本说明，并提醒使用者阅读后再使用"
     ]
   },
   {
     title: "反馈",
     paragraphs: [
-      "如果你在使用中遇到问题，或希望改进功能、兼容性和文档，可以向开发者反馈；反馈问题时，建议说明系统版本、eRead 版本、书籍格式、复现步骤和是否使用了联网功能；联系方式：2633078347@qq.com"
+      "如果你在使用中遇到问题，或希望改进功能、兼容性和文档，可以向开发者反馈；反馈问题时，建议说明系统版本、SkipReader 版本、书籍格式、复现步骤和是否使用了联网功能；联系方式：2633078347@qq.com"
     ]
   }
 ];
@@ -4410,8 +4410,8 @@ function InfoModalView({ type, onClose }: { type: Exclude<InfoModal, null>; onCl
     { title: "跃境与星轨练习", paragraphs: ["跃境默认关闭，在书库左侧“我的笔记”下方或阅读工具栏开启。背景跟随应用主题默认关闭，可以单独打开。风中的句子来自划线、当前章节或临时选句；完整摘录按长度停留 8–18 秒，长文在同一个位置续页；切换书籍视图接着播放，鼠标接触会轻轻拨动文字。书页留影中的照片就是导入的书，点击阅读，右键管理。", "词语星轨显示生词本中的随机词语。左键按住恒星约一秒进入练习，松开或移动会取消；书籍遮住背景时也可用左侧“星轨练习”。每轮最多 48 词，可随机或自选，保留原文例句。主动回想用空格揭晓，1 记住、2 再练；专注模式把题目直接放在星空中央，保留本轮进度。", "光的时刻可跟随电脑本地时间，也能手选日出、晴海、黄昏或夜航；海上可见太阳或月亮和对应倒影。海的慢呼吸可写信和拾瓶，内容来自自己的信、划线或书籍；阅读时关闭漂流瓶。声音连接需要浏览器授权系统或标签页音频，可断开或取消；浏览器可能要求同时选择共享画面。应用只分析音频律动，不保存声音或屏幕。画质可选自动、节能、精致，自动模式会降档，阅读时降低帧率，后台停止绘制。"] },
     { title: "安装与离线阅读", paragraphs: ["在 Edge 或 Chrome 中使用应用安装菜单，或页面中的安装入口，创建桌面快捷方式并在独立窗口打开。请使用安装了学习插件的同一浏览器配置。", "首次打开完成后可离线阅读已导入的书籍、整理笔记和生词。在线词典仍需联网；更新版本前请保存正在编辑的内容。"] }
   ] : [
-    { title: "SkipReader · 一跃", paragraphs: ["原 eRead 网页版，免费阅读与学习工具，提供书库、书签、朗读、可选查词、生词本、划线笔记、自动文件备份和可选加密学习记录同步。问题反馈：2633078347@qq.com。"] },
-    { title: "第三方内容与来源", paragraphs: ["SkipReader 不提供书籍下载。请使用有权阅读的资料，分享摘录和导出文件时遵守著作权及相关许可。第三方浏览器插件由用户自行安装，eRead 与这些插件及词典服务没有隶属或授权合作关系。", "在线释义来自必应词典。释义页显示来源和许可链接，收藏与导出保留这些信息。内容权利归对应权利人，使用时须遵守服务条款及词条许可；释义可用性和准确性依赖第三方服务。"] },
+    { title: "SkipReader · 一跃", paragraphs: ["免费网页阅读与学习工具，提供书库、书签、朗读、可选查词、生词本、划线笔记、自动文件备份和可选加密学习记录同步。问题反馈：2633078347@qq.com。"] },
+    { title: "第三方内容与来源", paragraphs: ["SkipReader 不提供书籍下载。请使用有权阅读的资料，分享摘录和导出文件时遵守著作权及相关许可。第三方浏览器插件由用户自行安装，SkipReader 与这些插件及词典服务没有隶属或授权合作关系。", "在线释义来自必应词典。释义页显示来源和许可链接，收藏与导出保留这些信息。内容权利归对应权利人，使用时须遵守服务条款及词条许可；释义可用性和准确性依赖第三方服务。"] },
     { title: "跃境与素材", paragraphs: ["可关闭的生成艺术与实时 3D 场景，与你的书籍、摘录、生词相连。关闭后恢复普通 SkipReader，原主题与自定义背景保留。海洋天空使用 Poly Haven 的免费 CC0 实拍 HDRI（Greg Zaal、Jarod Guest）；海面和清瓶保留本地模型。资源在应用内加载与缓存，不将书籍内容发送给素材网站。"] },
     { title: "隐私与数据", paragraphs: ["导入的书籍、笔记、生词和阅读进度不上传查词后台。查词只发送词语，网络服务会处理请求所需的连接信息。查词后台不设置查询日志。", "云同步默认关闭。启用后，学习记录通过浏览器 AES-GCM 加密再传到 Cloudflare；后台保存加密记录、账号验证摘要、版本和时间，不接收解密钥匙或整本书。登录码能读取并解密自己的云记录，请勿分享。可退出登录或永久删除云端账号，退出不删除本地资料。", "清除网站数据会删除本地书库和记住的登录状态。恢复卡丢失后无法找回加密数据。免费服务有容量与请求限制，不能替代独立文件备份。浏览器朗读及第三方插件的数据处理规则由对应服务决定。"] }
   ] : isHelp ? HELP_SECTIONS : ABOUT_SECTIONS;
@@ -4419,7 +4419,7 @@ function InfoModalView({ type, onClose }: { type: Exclude<InfoModal, null>; onCl
     <div className="modal-backdrop" onClick={onClose}>
       <div className="info-modal" onClick={(event) => event.stopPropagation()}>
         <div className="modal-titlebar">
-          <strong>{WEB ? isHelp ? "SkipReader 使用指南" : "关于 SkipReader · 一跃" : isHelp ? "eRead 使用指南" : "关于 eRead"}</strong>
+          <strong>{WEB ? isHelp ? "SkipReader 使用指南" : "关于 SkipReader · 一跃" : isHelp ? "SkipReader 使用指南" : "关于 SkipReader"}</strong>
           <button className="float-close" onClick={onClose}>×</button>
         </div>
         <div className="info-content">
@@ -4429,6 +4429,7 @@ function InfoModalView({ type, onClose }: { type: Exclude<InfoModal, null>; onCl
               {section.paragraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
             </section>
           ))}
+          {WEB && <p><a href={new URL("./about.html", location.href).href} target="_blank" rel="noopener noreferrer">了解 SkipReader · 公开介绍</a></p>}
           {WEB && !isHelp && <p><a href={new URL("./third-party-notices.txt", location.href).href} target="_blank" rel="noopener noreferrer">开源组件与许可声明</a></p>}
         </div>
       </div>

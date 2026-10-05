@@ -136,7 +136,7 @@ function row(value: Record<string, any>): any { return Object.fromEntries(Object
 async function importBackup() {
   const file = await pickFile(".json"); if (!file) return null;
   const backup = JSON.parse(await file.text());
-  if (!backup || !["eRead-web-backup", "eRead-backup"].includes(backup.schema) || ![1, 2].includes(backup.version)) throw new Error("请选择有效的 eRead 备份文件");
+  if (!backup || !["eRead-web-backup", "eRead-backup"].includes(backup.schema) || ![1, 2].includes(backup.version)) throw new Error("请选择有效的 SkipReader 备份文件");
   const desktop = backup.schema === "eRead-backup";
   const next = fresh(), html: Record<string, string> = {};
   const sources: Record<Exclude<keyof Data, "settings">, string> = { books: "books", chapters: "chapters", tocItems: "tocItems", positions: desktop ? "readingPositions" : "positions", chapterPositions: desktop ? "readingChapterPositions" : "chapterPositions", bookmarks: "bookmarks", notebooks: "notebooks", vocab: desktop ? "vocabItems" : "vocab", notes: "notes", seaLetters: "seaLetters" };
@@ -162,7 +162,7 @@ async function importBackup() {
   }
   for (const note of next.notes) if (!/^#[0-9a-f]{6}$/i.test(note.color)) note.color = "#f2c94c";
   if (!confirm(`导入后将替换当前网页书库（${next.books.length} 本书）。会先自动下载当前数据备份。是否继续？`)) return null;
-  await exportBackup("eRead_导入前备份.json");
+  await exportBackup("SkipReader_导入前备份.json");
   await mutate(current => Object.assign(current, next), html, data.chapters.filter(c => !next.chapters.some(n => n.id === c.id)).map(c => c.id));
   localStorage.removeItem(journalKey);
   return { books: next.books.length, chapters: next.chapters.length, tocItems: next.tocItems.length, notebooks: next.notebooks.length, vocabItems: next.vocab.length, notes: next.notes.length, bookmarks: next.bookmarks.length };
@@ -240,7 +240,7 @@ export async function installBrowserAPI() {
       dismissAssociation: async id => mutate(next => { const book = next.books.find(b => b.id === id); if (book) book.associationDismissedAt = now(); }),
       relocate: async () => { throw new Error("网页书籍保存在浏览器中；如需恢复旧数据，请导入完整备份"); },
       rename: async (id, title) => mutate(next => { const book = next.books.find(b => b.id === id)!; book.title = title; book.updatedAt = now(); return book; }),
-      exportCover: async id => { await refresh(); const cover = data.books.find(b => b.id === id)?.coverPath; if (!cover) return null; const blob = await (await fetch(cover)).blob(); return download(blob, "eRead_封面." + (blob.type.split("/")[1] === "jpeg" ? "jpg" : blob.type.split("/")[1] || "png")); },
+      exportCover: async id => { await refresh(); const cover = data.books.find(b => b.id === id)?.coverPath; if (!cover) return null; const blob = await (await fetch(cover)).blob(); return download(blob, "SkipReader_封面." + (blob.type.split("/")[1] === "jpeg" ? "jpg" : blob.type.split("/")[1] || "png")); },
       exportNotes: async (id, mode) => { await refresh(); const book = data.books.find(b => b.id === id)!; return download(renderNotesExport(data.notes.filter(n => n.bookId === id && (mode !== "ideas" || n.noteText)), { [id]: book.title }, "md", book.title), `${book.title}_笔记.md`); }
     },
     settings: { get: async () => { await refresh(); return browserSettings(data.settings); }, set: async value => mutate(next => { next.settings = browserSettings(value); return next.settings; }), importBackground: async () => { const file = await pickFile(".png,.jpg,.jpeg,.webp,.gif,.avif,.bmp"); return file ? dataUrl(file) : null; } },
@@ -266,7 +266,7 @@ export async function installBrowserAPI() {
     dictionary: { lookup: term => lookupDictionary(term), lookupWithSource: term => lookupDictionary(term), lookupBingBasic: term => lookupDictionary(term), openOfficial: async url => { if (/^https:\/\//i.test(url)) window.open(url, "_blank", "noopener,noreferrer"); }, browserShow: async () => browserState, browserSetBounds: async () => browserState, browserHide: async () => browserState, browserControl: async () => browserState, onBrowserState: () => () => {} },
     ai: { ask: unavailable }, tts: { edgeSpeak: async () => ({ available: false, error: "网页版使用浏览器免费朗读" }) },
     backup: { export: () => exportBackup(), import: importBackup },
-    logs: { export: async () => download(JSON.stringify({ version: "web-0.1", secureContext: isSecureContext, userAgent: navigator.userAgent, storage: await navigator.storage?.estimate?.() }, null, 2), "eRead_网页诊断.json") },
+    logs: { export: async () => download(JSON.stringify({ version: "web-0.1", secureContext: isSecureContext, userAgent: navigator.userAgent, storage: await navigator.storage?.estimate?.() }, null, 2), "SkipReader_网页诊断.json") },
     window: { toggleMaximize: async () => { if (document.fullscreenElement) await document.exitFullscreen(); else await document.documentElement.requestFullscreen(); return Boolean(document.fullscreenElement); } }
   };
 }
